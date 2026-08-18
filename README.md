@@ -20,6 +20,16 @@ npm test
 npm run build
 ```
 
+## GitHub Pages
+
+The live site is served from the Vite `dist/` build, not the repository root.
+
+1. Open the repo **Settings → Pages**.
+2. Set **Source** to **GitHub Actions** (not “Deploy from a branch” / root).
+3. Push to `main` (or run the **Deploy GitHub Pages** workflow). The first run must succeed before the site is live.
+
+The workflow builds with `base: '/latex-to-word/'` so assets load at `https://lionelapex.github.io/latex-to-word/`.
+
 ## What it does
 
 - Headings, paragraphs, bold/italic, lists, GFM tables, code, quotes
