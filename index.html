@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LaTeX to Word — Convert ChatGPT Math into Editable Word Documents</title>
+    <meta
+      name="description"
+      content="Paste ChatGPT or LaTeX, convert equations and tables, and download a .docx with editable Word equations. Runs in your browser."
+    />
+    <meta
+      property="og:title"
+      content="LaTeX to Word — Convert ChatGPT Math into Editable Word Documents"
+    />
+    <meta
+      property="og:description"
+      content="Paste ChatGPT or LaTeX, convert equations and tables, and download a .docx with editable Word equations. Runs in your browser."
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>LaTeX to Word</h1>
+        <p class="subtitle">
+          Convert ChatGPT, Markdown, and LaTeX into a Word document with editable equations.
+        </p>
+      </div>
+      <p class="privacy">Your document is processed locally in your browser.</p>
+      <div class="how-it-works-block">
+        <h2 class="how-it-works-heading">How it works</h2>
+        <ol class="how-it-works">
+          <li>Paste ChatGPT or LaTeX content</li>
+          <li>Click Convert</li>
+          <li>Download .docx and open in Microsoft Word</li>
+        </ol>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="pane input-pane">
+        <div class="pane-toolbar">
+          <label class="mode-label">
+            Math detection
+            <select id="mode-select" aria-label="Math detection mode">
+              <option value="smart" selected>Smart</option>
+              <option value="strict">Strict</option>
+            </select>
+          </label>
+          <div class="button-row">
+            <button type="button" id="btn-convert" class="primary">Convert</button>
+            <button type="button" id="btn-paste">Paste from Clipboard</button>
+            <button type="button" id="btn-clear">Clear</button>
+          </div>
+        </div>
+        <textarea
+          id="input"
+          spellcheck="false"
+          placeholder="Paste ChatGPT content, Markdown, or LaTeX here..."
+        ></textarea>
+        <p class="hint">
+          Paste ChatGPT math, Markdown, or LaTeX. Copy-button Markdown from ChatGPT usually uses
+          <code>\[...\]</code> and <code>\(...\)</code>.
+          Dollar signs, <code>$$</code>, and conservative <code>[...]</code> display math are also supported.
+          Tables copied as HTML or tab-separated text are converted to Markdown pipes so preview and Word keep a real grid.
+        </p>
+      </section>
+
+      <section class="pane preview-pane">
+        <div class="pane-toolbar">
+          <div id="stats" class="stats" hidden>
+            <button type="button" id="stat-converted" class="stat">Converted: 0</button>
+            <button type="button" id="stat-warnings" class="stat">Warnings: 0</button>
+            <button type="button" id="stat-failed" class="stat">Failed: 0</button>
+          </div>
+          <div class="button-row">
+            <button type="button" id="btn-copy">Copy for Word</button>
+            <button type="button" id="btn-docx" class="primary">Download .docx</button>
+            <button type="button" id="btn-html">Download HTML</button>
+          </div>
+        </div>
+        <div id="preview" class="preview" aria-live="polite"></div>
+        <div id="notice" class="notice" hidden></div>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
