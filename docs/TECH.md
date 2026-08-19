@@ -1,5 +1,7 @@
 # Math-to-Word technical decisions
 
+> **Note:** For day-to-day contributor documentation (folder layout, data flow, tests, extending the parser), see **[DEVELOPER.md](DEVELOPER.md)**. This file is the MVP-0 architecture **decision record** — rationale and rejected alternatives — not a full developer manual.
+
 This document records the architecture chosen for the client-only ChatGPT-to-Word converter. It is the MVP-0 decision record.
 
 ## Verdict
