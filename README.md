@@ -1,55 +1,109 @@
 ﻿# LaTeX to Word
 
-Convert ChatGPT, Markdown, and LaTeX into a Word document with editable equations.
+Convert ChatGPT, Markdown, and LaTeX into a Word document with **editable equations**.
 
-Paste ChatGPT or LaTeX content, click Convert, then download a `.docx` and open it in Microsoft Word. Equations stay editable in Word. Everything runs in your browser.
+**Live demo:** [https://lionelapex.github.io/latex-to-word/](https://lionelapex.github.io/latex-to-word/)  
+**Repository:** [https://github.com/Lionelapex/latex-to-word](https://github.com/Lionelapex/latex-to-word)
 
-**Your document is processed locally in your browser.**
+Everything runs in your browser. Your content is never uploaded to a server.
 
-## Run
+## Quick start
+
+1. **Paste** ChatGPT output, Markdown, or LaTeX into the input box (Ctrl+V or **Paste from Clipboard**).
+2. **Convert** — click **Convert** or press Ctrl+Enter. Preview and conversion stats appear on the right.
+3. **Download** — click **Download .docx** and open the file in Microsoft Word.
+
+For step-by-step usage, math delimiters, tables, and troubleshooting, see the [User Guide](docs/USER_GUIDE.md).
+
+## Features
+
+- Headings, paragraphs, **bold** / *italic*, bullet and numbered lists, block quotes, horizontal rules, fenced code
+- GFM-style tables (pipe syntax or pasted HTML/tab-separated tables)
+- LaTeX math with multiple delimiter styles (see below)
+- **Smart** math detection for obvious undelimited LaTeX (`\frac`, `\sqrt`, `\bar{x}`, Greek letters, subscripts)
+- Live preview using native **MathML** (no KaTeX or MathJax)
+- **Download .docx** with native Word OMML equations (editable in Word)
+- **Copy for Word** — HTML + MathML clipboard export (best-effort)
+- **Download HTML** — standalone HTML file with MathML preview
+- Conversion stats: Converted / Warnings / Failed (click Failed or Warnings to highlight problem math)
+
+## Supported input
+
+| Source | Notes |
+| --- | --- |
+| **ChatGPT** | Use the copy button on a response; output usually includes `\[...\]` and `\(...\)` delimiters. |
+| **Markdown** | Headings (`#`), lists, emphasis, code fences, GFM tables. |
+| **LaTeX delimiters** | `\[ \]` and `$$ $$` (display), `\( \)` and `$ $` (inline), conservative `[ ... ]` when math-like. |
+| **Tables** | Pipe tables, or paste HTML/tab-separated tables — the app normalizes them to Markdown pipes. |
+| **Smart detection** | In **Smart** mode, undelimited snippets like `\bar{x}` or `\frac{a}{b}` are treated as inline math. Use **Strict** to only honor explicit delimiters. |
+
+## Supported LaTeX (summary)
+
+The custom LaTeX parser covers common school and statistics notation:
+
+- Fractions (`\frac`, `\dfrac`, `\tfrac`), roots (`\sqrt`, `\sqrt[n]{…}`)
+- Subscripts, superscripts, `\text{…}`, `\mathrm{…}`
+- Greek letters and common symbols (`\neq`, `\leq`, `\infty`, `\sum`, `\int`, arrows, set symbols, …)
+- Accents: `\bar`, `\hat`, `\vec`, `\tilde`, `\dot`, `\ddot`
+- Functions: `\sin`, `\cos`, `\log`, `\ln`, `\exp`, etc.
+- Sums, products, integrals with limits (`\sum`, `\prod`, `\int`, `\lim`)
+- Delimiters via `\left`/`\right`, `\binom`, `\choose`
+- Matrices: `\begin{pmatrix}`, `bmatrix`, `vmatrix`, `Bmatrix`, and generic `matrix` environments
+
+Unknown or malformed expressions become **failed** nodes: the original source is preserved and shown in the preview, never silently dropped.
+
+## Limitations
+
+- **Target:** desktop **Microsoft Word**. Equations are OMML (`m:oMath`), not images — but layout may differ slightly from LaTeX PDF output.
+- **Not a full TeX engine** — exotic packages, `\newcommand`, align environments, `\ce` chemistry, TikZ, and most AMS-only macros are unsupported.
+- **Smart mode heuristics** can miss rare undelimited math or, rarely, mis-detect text; use **Strict** mode when you only want explicit delimiters.
+- **Copy for Word** is best-effort; **Download .docx** is the reliable path into Word.
+- **Preview** uses browser MathML; a few constructs render via OMML XML injection and may look different in preview vs Word.
+- **Bracket math** `[ ... ]` is conservative — citations like `[1]`, links, and non-math brackets are skipped.
+- **Dollar math** skips empty or purely numeric amounts that look like currency when appropriate.
+
+## Local development
+
+Requires [Node.js](https://nodejs.org/) (LTS recommended).
 
 ```bash
 npm install
 npm run dev
 ```
 
-Then open the URL Vite prints (usually `http://localhost:5173`).
+Open the URL Vite prints (usually `http://localhost:5173`).
+
+On Windows, if PowerShell blocks `npm`, use `npm.cmd run dev` or double-click **`run-dev.bat`**. See [User Guide — Troubleshooting](docs/USER_GUIDE.md#troubleshooting).
 
 ```bash
-npm test
-npm run build
+npm test          # run Vitest once
+npm run test:watch
+npm run build     # production build to dist/
+npm run preview   # serve dist/ locally
 ```
 
-## GitHub Pages
+Contributors: see [Developer Guide](docs/DEVELOPER.md).
 
-The live site is served from the Vite `dist/` build, not the repository root.
+## GitHub Pages deployment
 
-1. Open the repo **Settings → Pages**.
-2. Set **Source** to **GitHub Actions** (not “Deploy from a branch” / root).
-3. Push to `main` (or run the **Deploy GitHub Pages** workflow). The first run must succeed before the site is live.
+The live site is the Vite **`dist/`** build, deployed by GitHub Actions — not the repository root.
 
-The workflow builds with `base: '/latex-to-word/'` so assets load at `https://lionelapex.github.io/latex-to-word/`.
+1. Repo **Settings → Pages** → **Source:** **GitHub Actions**.
+2. Push to `main` (or run the **Deploy GitHub Pages** workflow).
 
-## What it does
-
-- Headings, paragraphs, bold/italic, lists, GFM tables, code, quotes
-- Delimited math: `\[ \]`, `$$ $$`, `\( \)`, `$ $`, and conservative `[ ]`
-- Smart math detection for obvious undelimited LaTeX (`\frac`, `\sqrt`, `\bar{x}`, Greek, â€¦)
-- Preview via native MathML (no KaTeX / MathJax)
-- Download `.docx` with native Word equations
-- Copy for Word (HTML + MathML, best-effort)
-
-## Windows troubleshooting
-
-PowerShell may block `npm` because it runs `npm.ps1` when script execution is disabled. Use one of these instead:
-
-- **Quick fix:** `npm.cmd run dev` (and `npm.cmd install` for install)
-- **Helper script:** `.\run-dev.bat` (double-click or run from cmd/PowerShell)
-- **Optional (current user only):** `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
-
-`run-dev.ps1` calls `npm.cmd` through `cmd.exe` for the same reason; if issues persist, use `run-dev.bat`.
+The app is built with `base: '/latex-to-word/'` so assets load at  
+`https://lionelapex.github.io/latex-to-word/`.
 
 ## Privacy
 
-No accounts, no API keys, no server. Conversion never uploads your paste.
+No accounts, no API keys, no backend. Parsing, preview, and `.docx` generation happen entirely in your browser. Content you paste never leaves your device.
 
+## License
+
+MIT — see [LICENSE](LICENSE) (to be added; project dependencies use permissive licenses).
+
+## Documentation
+
+- [User Guide](docs/USER_GUIDE.md) — copying from ChatGPT, paste methods, export options, FAQ
+- [Developer Guide](docs/DEVELOPER.md) — architecture, modules, tests, extending the parser
+- [TECH.md](docs/TECH.md) — MVP architecture decision record
