@@ -1,0 +1,24 @@
+---
+description: Point agents at living project documentation (current app + SaaS plan)
+alwaysApply: true
+---
+
+# Project documentation
+
+This repo is **LaTeX to Word** (Git folder `math-to-word`).
+
+Start here:
+
+- `docs/saas/README.md` — index for paid-subscription planning and living docs
+- `docs/saas/CURRENT-PRODUCT.md` — the free client-only app as it exists today
+- `docs/saas/ARCHITECTURE.md` — planned SaaS: conversion stays in the browser; backend is accounts, billing, entitlements only
+- `docs/saas/UI-LAYOUT.md` — intended paid-app layout
+
+Hard constraints unless a file in `docs/saas/DECISIONS.md` overrides them:
+
+- No KaTeX / Temml
+- No React/Vue/Svelte for the converter MVP
+- Do not upload pasted LaTeX/documents to a server
+- Native Word equations via OMML, never images
+
+When you ship a product change, update `docs/saas/CHANGELOG.md` and the relevant SaaS doc in the same change.

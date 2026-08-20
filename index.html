@@ -3,86 +3,229 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LaTeX to Word — Convert ChatGPT Math into Editable Word Documents</title>
+    <title>LaTeX to Word — Free LaTeX2Word Converter | ChatGPT to DOCX with Editable Equations</title>
     <meta
       name="description"
-      content="Paste ChatGPT or LaTeX, convert equations and tables, and download a .docx with editable Word equations. Runs in your browser."
+      content="Free LaTeX to Word converter (LaTeX2Word). Paste ChatGPT, Markdown, or LaTeX and download a .docx with native editable Word equations (OMML). Runs locally in your browser — no upload."
     />
     <meta
+      name="keywords"
+      content="LaTeX to Word, LaTeX2Word, latex to docx, ChatGPT to Word, convert LaTeX to Word, math to Word, OMML equations, editable Word equations"
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="LaTeX to Word" />
+    <link rel="canonical" href="https://lionelapex.github.io/latex-to-word/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://lionelapex.github.io/latex-to-word/" />
+    <meta
       property="og:title"
-      content="LaTeX to Word — Convert ChatGPT Math into Editable Word Documents"
+      content="LaTeX to Word — Convert ChatGPT &amp; LaTeX to Editable Word DOCX"
     />
     <meta
       property="og:description"
-      content="Paste ChatGPT or LaTeX, convert equations and tables, and download a .docx with editable Word equations. Runs in your browser."
+      content="Paste ChatGPT or LaTeX, preview instantly, and download a Word document with editable equations. Private, browser-based LaTeX2Word tool."
     />
-    <link rel="stylesheet" href="./styles.css" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="twitter:title"
+      content="LaTeX to Word — LaTeX2Word Converter"
+    />
+    <meta
+      name="twitter:description"
+      content="Convert ChatGPT and LaTeX to Word .docx with editable equations. Free, private, runs in your browser."
+    />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "LaTeX to Word",
+        "alternateName": ["LaTeX2Word", "LaTeX to DOCX"],
+        "url": "https://lionelapex.github.io/latex-to-word/",
+        "description": "Convert ChatGPT, Markdown, and LaTeX into a Microsoft Word document with native editable OMML equations.",
+        "applicationCategory": "UtilityApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "LaTeX to Word conversion",
+          "ChatGPT math to DOCX",
+          "Editable Word equations",
+          "Markdown and table support",
+          "Local browser processing"
+        ]
+      }
+    </script>
   </head>
-  <body>
-    <header class="app-header">
-      <div>
-        <h1>LaTeX to Word</h1>
-        <p class="subtitle">
-          Convert ChatGPT, Markdown, and LaTeX into a Word document with editable equations.
-        </p>
-      </div>
-      <p class="privacy">Your document is processed locally in your browser.</p>
-      <div class="how-it-works-block">
-        <h2 class="how-it-works-heading">How it works</h2>
-        <ol class="how-it-works">
-          <li>Paste ChatGPT or LaTeX content</li>
-          <li>Click Convert</li>
-          <li>Download .docx and open in Microsoft Word</li>
-        </ol>
+  <body class="flex min-h-screen flex-col">
+    <header class="border-b border-slate-200 bg-white">
+      <div class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="max-w-2xl">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">LaTeX2Word</p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              LaTeX to Word — convert ChatGPT &amp; LaTeX to editable DOCX
+            </h1>
+            <p class="mt-2 text-sm leading-relaxed text-slate-600 sm:text-base">
+              Paste ChatGPT, Markdown, or LaTeX. Preview updates live. Download a Word file with
+              native editable equations — processed privately in your browser.
+            </p>
+          </div>
+          <p
+            class="inline-flex shrink-0 items-center self-start rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800 sm:text-sm"
+          >
+            Private · runs locally in your browser
+          </p>
+        </div>
+
+        <nav aria-label="How it works" class="mt-5">
+          <h2 class="sr-only">How LaTeX to Word works</h2>
+          <ol class="grid gap-2 sm:grid-cols-3">
+            <li class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+              <span
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700"
+                aria-hidden="true"
+                >1</span
+              >
+              Paste ChatGPT or LaTeX content
+            </li>
+            <li class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+              <span
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700"
+                aria-hidden="true"
+                >2</span
+              >
+              Preview updates automatically
+            </li>
+            <li class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+              <span
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700"
+                aria-hidden="true"
+                >3</span
+              >
+              Download .docx and open in Microsoft Word
+            </li>
+          </ol>
+        </nav>
       </div>
     </header>
 
-    <main class="layout">
-      <section class="pane input-pane">
-        <div class="pane-toolbar">
-          <label class="mode-label">
-            Math detection
-            <select id="mode-select" aria-label="Math detection mode">
-              <option value="smart" selected>Smart</option>
-              <option value="strict">Strict</option>
-            </select>
-          </label>
-          <div class="button-row">
-            <button type="button" id="btn-convert" class="primary">Convert</button>
-            <button type="button" id="btn-paste">Paste from Clipboard</button>
-            <button type="button" id="btn-clear">Clear</button>
+    <main class="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
+      <div
+        class="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6"
+        style="min-height: calc(100vh - 14rem)"
+      >
+        <!-- Input -->
+        <section
+          aria-label="LaTeX and ChatGPT input"
+          class="flex min-h-[320px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:min-h-0"
+        >
+          <div class="flex flex-wrap items-end gap-3 border-b border-slate-200 bg-slate-50 px-3 py-3 sm:px-4">
+            <label class="field-label min-w-[9rem] flex-1">
+              Example
+              <select id="sample-select" class="field-select" aria-label="Load example document">
+                <option value="">Load example…</option>
+                <option value="probability">Probability &amp; statistics</option>
+                <option value="skewness">Skewness interpretation</option>
+                <option value="coffee">Coffee creamer table</option>
+              </select>
+            </label>
+            <label class="field-label min-w-[9rem] flex-1">
+              Math detection
+              <select id="mode-select" class="field-select" aria-label="Math detection mode">
+                <option value="smart" selected>Smart</option>
+                <option value="strict">Strict</option>
+              </select>
+            </label>
+            <div class="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto">
+              <button type="button" id="btn-paste" class="btn flex-1 sm:flex-none">Paste</button>
+              <button type="button" id="btn-clear" class="btn flex-1 sm:flex-none">Clear</button>
+            </div>
           </div>
-        </div>
-        <textarea
-          id="input"
-          spellcheck="false"
-          placeholder="Paste ChatGPT content, Markdown, or LaTeX here..."
-        ></textarea>
-        <p class="hint">
-          Paste ChatGPT math, Markdown, or LaTeX. Copy-button Markdown from ChatGPT usually uses
-          <code>\[...\]</code> and <code>\(...\)</code>.
-          Dollar signs, <code>$$</code>, and conservative <code>[...]</code> display math are also supported.
-          Tables copied as HTML or tab-separated text are converted to Markdown pipes so preview and Word keep a real grid.
-        </p>
-      </section>
 
-      <section class="pane preview-pane">
-        <div class="pane-toolbar">
-          <div id="stats" class="stats" hidden>
-            <button type="button" id="stat-converted" class="stat">Converted: 0</button>
-            <button type="button" id="stat-warnings" class="stat">Warnings: 0</button>
-            <button type="button" id="stat-failed" class="stat">Failed: 0</button>
+          <label for="input" class="sr-only">Paste LaTeX, ChatGPT, or Markdown content</label>
+          <textarea
+            id="input"
+            spellcheck="false"
+            class="min-h-[240px] flex-1 resize-none border-0 bg-white px-4 py-3 font-mono text-sm leading-relaxed text-slate-800 outline-none focus:ring-2 focus:ring-inset focus:ring-blue-200 lg:min-h-0"
+            placeholder="Paste ChatGPT content, Markdown, or LaTeX here — preview updates as you type…"
+          ></textarea>
+
+          <p class="border-t border-slate-200 px-4 py-3 text-xs leading-relaxed text-slate-500">
+            Supports <code>\[...\]</code>, <code>\(...\)</code>, <code>$$...$$</code>, and
+            <code>$...$</code> math. HTML and TSV tables paste as Markdown pipes. Draft autosaves
+            locally. Shortcuts:
+            <kbd class="rounded border border-slate-300 bg-slate-100 px-1 font-sans text-[0.7rem]"
+              >Ctrl+Enter</kbd
+            >
+            refresh,
+            <kbd class="rounded border border-slate-300 bg-slate-100 px-1 font-sans text-[0.7rem]"
+              >Ctrl+Shift+D</kbd
+            >
+            download .docx,
+            <kbd class="rounded border border-slate-300 bg-slate-100 px-1 font-sans text-[0.7rem]"
+              >Ctrl+Shift+H</kbd
+            >
+            download HTML.
+          </p>
+        </section>
+
+        <!-- Preview -->
+        <section
+          aria-label="Word document preview"
+          class="flex min-h-[360px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:min-h-0"
+        >
+          <div class="flex flex-col gap-3 border-b border-slate-200 bg-slate-50 px-3 py-3 sm:px-4">
+            <div id="stats" class="flex flex-wrap gap-2" hidden>
+              <button type="button" id="stat-converted" class="stat-pill">Converted: 0</button>
+              <button type="button" id="stat-warnings" class="stat-pill">Warnings: 0</button>
+              <button type="button" id="stat-failed" class="stat-pill">Failed: 0</button>
+            </div>
+
+            <div id="math-issues" class="math-issues" hidden></div>
+
+            <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+              <div class="flex flex-wrap gap-2">
+                <button type="button" id="btn-docx" class="btn btn-primary">Download .docx</button>
+                <button type="button" id="btn-redownload" class="btn" disabled>Download again</button>
+                <button type="button" id="btn-html" class="btn">Download HTML</button>
+              </div>
+              <label class="field-label sm:ml-auto sm:min-w-[10rem]">
+                Recent
+                <select id="export-history" class="field-select" disabled aria-label="Recent exports">
+                  <option value="">Recent exports…</option>
+                </select>
+              </label>
+            </div>
           </div>
-          <div class="button-row">
-            <button type="button" id="btn-copy">Copy for Word</button>
-            <button type="button" id="btn-docx" class="primary">Download .docx</button>
-            <button type="button" id="btn-html">Download HTML</button>
-          </div>
-        </div>
-        <div id="preview" class="preview" aria-live="polite"></div>
-        <div id="notice" class="notice" hidden></div>
-      </section>
+
+          <div
+            id="preview"
+            class="flex-1 overflow-auto bg-slate-200/80 p-3 sm:p-5"
+            aria-live="polite"
+          ></div>
+          <div id="notice" class="px-4 py-3 text-sm" hidden role="status"></div>
+        </section>
+      </div>
     </main>
+
+    <footer class="mt-auto border-t border-slate-200 bg-white">
+      <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <h2 class="text-sm font-semibold text-slate-900">About this LaTeX to Word converter</h2>
+        <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600">
+          <strong>LaTeX to Word</strong> (LaTeX2Word) turns ChatGPT output, Markdown, and LaTeX into a
+          Microsoft Word <code>.docx</code> with <strong>editable native equations</strong> — not
+          screenshots. Ideal for students, researchers, and anyone who needs LaTeX math in Word without
+          manual retyping. Your content stays on your device; nothing is uploaded to a server.
+        </p>
+      </div>
+    </footer>
 
     <script type="module" src="./app.js"></script>
   </body>

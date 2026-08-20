@@ -1,38 +1,40 @@
 import { toMathMLString, appendMathML } from "./mathml-renderer.js";
 import { escapeHtml } from "../utils/xml.js";
+import { getMathIssueKind } from "../model/document-model.js";
 
 export function renderPreview(container, documentModel) {
   const doc = container.ownerDocument;
   container.replaceChildren();
   const page = doc.createElement("div");
   page.className = "word-page";
+  const issueCounter = { value: 0 };
   for (const block of documentModel.blocks || []) {
-    page.appendChild(renderBlock(doc, block));
+    page.appendChild(renderBlock(doc, block, issueCounter));
   }
   if (!(documentModel.blocks || []).length) {
     const empty = doc.createElement("p");
     empty.className = "preview-empty";
-    empty.textContent = "Paste content and click Convert to preview.";
+    empty.textContent = "Paste content on the left to see a live preview.";
     page.appendChild(empty);
   }
   container.appendChild(page);
 }
 
-function renderBlock(doc, block) {
+function renderBlock(doc, block, issueCounter) {
   if (block.type === "heading") {
     const node = doc.createElement(`h${Math.min(6, Math.max(1, block.level || 1))}`);
-    appendInlines(node, block.inlines || [], doc);
+    appendInlines(node, block.inlines || [], doc, {}, issueCounter);
     return node;
   }
   if (block.type === "paragraph") {
     const node = doc.createElement("p");
-    appendInlines(node, block.inlines || [], doc);
+    appendInlines(node, block.inlines || [], doc, {}, issueCounter);
     return node;
   }
   if (block.type === "math") {
     const wrap = doc.createElement("div");
     wrap.className = "display-math";
-    if (block.ast?.type === "failed") wrap.classList.add("math-failed-block");
+    tagMathIssue(wrap, block, issueCounter);
     appendMathML(wrap, block.ast, { display: true, document: doc });
     wrap.dataset.source = block.source || "";
     return wrap;
@@ -41,9 +43,9 @@ function renderBlock(doc, block) {
     const node = doc.createElement(block.ordered ? "ol" : "ul");
     for (const item of block.items || []) {
       const li = doc.createElement("li");
-      appendInlines(li, item.inlines || [], doc);
+      appendInlines(li, item.inlines || [], doc, {}, issueCounter);
       for (const child of item.blocks || []) {
-        li.appendChild(renderBlock(doc, child));
+        li.appendChild(renderBlock(doc, child, issueCounter));
       }
       node.appendChild(li);
     }
@@ -55,18 +57,18 @@ function renderBlock(doc, block) {
     table.style.borderCollapse = "collapse";
     table.style.width = "100%";
     const thead = doc.createElement("thead");
-    thead.appendChild(renderTableRow(doc, block.header || [], block.aligns, true));
+    thead.appendChild(renderTableRow(doc, block.header || [], block.aligns, true, issueCounter));
     table.appendChild(thead);
     const tbody = doc.createElement("tbody");
     for (const row of block.rows || []) {
-      tbody.appendChild(renderTableRow(doc, row, block.aligns, false));
+      tbody.appendChild(renderTableRow(doc, row, block.aligns, false, issueCounter));
     }
     table.appendChild(tbody);
     return table;
   }
   if (block.type === "quote") {
     const quote = doc.createElement("blockquote");
-    for (const child of block.blocks || []) quote.appendChild(renderBlock(doc, child));
+    for (const child of block.blocks || []) quote.appendChild(renderBlock(doc, child, issueCounter));
     return quote;
   }
   if (block.type === "code") {
@@ -82,7 +84,7 @@ function renderBlock(doc, block) {
   return unknown;
 }
 
-function renderTableRow(doc, cells, aligns, header) {
+function renderTableRow(doc, cells, aligns, header, issueCounter) {
   const tr = doc.createElement("tr");
   for (let i = 0; i < cells.length; i += 1) {
     const cell = doc.createElement(header ? "th" : "td");
@@ -91,13 +93,27 @@ function renderTableRow(doc, cells, aligns, header) {
     cell.style.verticalAlign = "top";
     if (header) cell.style.background = "#f2f2f2";
     if (aligns?.[i]) cell.style.textAlign = aligns[i];
-    appendInlines(cell, cells[i].inlines || [], doc);
+    appendInlines(cell, cells[i].inlines || [], doc, {}, issueCounter);
     tr.appendChild(cell);
   }
   return tr;
 }
 
-function appendInlines(parent, inlines, doc, marks = {}) {
+function tagMathIssue(element, node, issueCounter) {
+  const kind = getMathIssueKind(node);
+  if (!kind) return;
+  element.dataset.issueId = `math-issue-${issueCounter.value}`;
+  element.dataset.issueKind = kind;
+  const isDisplay = Boolean(node.display);
+  if (kind === "failed") {
+    element.classList.add(isDisplay ? "math-failed-block" : "math-failed-inline");
+  } else {
+    element.classList.add(isDisplay ? "math-warning-block" : "math-warning-inline");
+  }
+  issueCounter.value += 1;
+}
+
+function appendInlines(parent, inlines, doc, marks = {}, issueCounter) {
   for (const node of inlines) {
     if (node.type === "text") {
       const span = doc.createElement(marks.bold && marks.italic ? "strong" : marks.bold ? "strong" : marks.italic ? "em" : "span");
@@ -112,11 +128,11 @@ function appendInlines(parent, inlines, doc, marks = {}) {
       continue;
     }
     if (node.type === "strong") {
-      appendInlines(parent, node.children || [], doc, { ...marks, bold: true });
+      appendInlines(parent, node.children || [], doc, { ...marks, bold: true }, issueCounter);
       continue;
     }
     if (node.type === "emphasis") {
-      appendInlines(parent, node.children || [], doc, { ...marks, italic: true });
+      appendInlines(parent, node.children || [], doc, { ...marks, italic: true }, issueCounter);
       continue;
     }
     if (node.type === "code") {
@@ -128,14 +144,16 @@ function appendInlines(parent, inlines, doc, marks = {}) {
     if (node.type === "math") {
       if (node.display) {
         const wrap = doc.createElement("div");
-        wrap.className = node.ast?.type === "failed" ? "display-math math-failed-block" : "display-math";
+        wrap.className = "display-math";
+        tagMathIssue(wrap, node, issueCounter);
         wrap.dataset.source = node.source || "";
         appendMathML(wrap, node.ast, { display: true, document: doc });
         parent.appendChild(wrap);
         continue;
       }
       const span = doc.createElement("span");
-      span.className = node.ast?.type === "failed" ? "inline-math math-failed-inline" : "inline-math";
+      span.className = "inline-math";
+      tagMathIssue(span, node, issueCounter);
       span.dataset.source = node.source || "";
       appendMathML(span, node.ast, { display: false, document: doc });
       parent.appendChild(span);

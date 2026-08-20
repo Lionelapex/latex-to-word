@@ -8,7 +8,7 @@ Native OMML equations are feasible in the browser. The conversion spine is a cus
 
 ## Architecture
 
-The document model is the source of truth. Preview, clipboard, and DOCX are independent renderers.
+The document model is the source of truth. Preview and DOCX are independent renderers.
 
 ```
 Raw paste
@@ -18,8 +18,7 @@ Raw paste
   → LaTeX parser (Math AST, or a failed node that keeps the source)
   → Document Model
        → HTML/MathML preview
-       → OMML → DOCX
-       → clipboard HTML + plain text
+       → OMML → DOCX (+ HTML file download)
 ```
 
 Never convert LaTeX → HTML → Word. Never export equations as images.
@@ -57,4 +56,4 @@ Unknown or malformed expressions become `failed` nodes that preserve the origina
 
 ## Acceptance target
 
-Desktop Microsoft Word. Generated equations must be editable OMML (`m:oMath` / `m:oMathPara`), not images. Clipboard HTML+MathML is best-effort; Download .docx is authoritative.
+Desktop Microsoft Word. Generated equations must be editable OMML (`m:oMath` / `m:oMathPara`), not images. **Download .docx** is the export path into Word.
