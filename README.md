@@ -2,7 +2,7 @@
 
 Convert ChatGPT, Markdown, and LaTeX into a Word document with editable equations.
 
-Paste ChatGPT or LaTeX content — the preview updates automatically — then download a `.docx` and open it in Microsoft Word. Equations stay editable in Word. Everything runs in your browser.
+Paste any LaTeX content. The preview updates automatically, then download a `.docx` and open it in Microsoft Word. Equations stay editable in Word. Images and PDFs are not yet supported. Everything runs in your browser.
 
 **Your document is processed locally in your browser.**
 

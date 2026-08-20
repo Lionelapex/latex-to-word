@@ -14,7 +14,7 @@ export function renderPreview(container, documentModel) {
   if (!(documentModel.blocks || []).length) {
     const empty = doc.createElement("p");
     empty.className = "preview-empty";
-    empty.textContent = "Paste content on the left to see a live preview.";
+    empty.textContent = "Paste any LaTeX content on the left to see a live preview.";
     page.appendChild(empty);
   }
   container.appendChild(page);

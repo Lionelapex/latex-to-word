@@ -72,6 +72,7 @@ Smart mode (default): obvious undelimited LaTeX (`\frac`, `\sqrt`, `\bar{x}`, Gr
 - Error capture (last 50) is silent and local: JS crashes anytime; failed/warning math snapshots when the user downloads or clicks Send error report
 - Desktop Word is the acceptance target; Word Online is weaker
 - Same download name historically (`latex-to-word.docx`) — **now uses first heading/line** (fallback `latex-to-word.docx`)
+- Images and PDFs are **not yet supported** (paste LaTeX / ChatGPT / Markdown text only)
 - Image → LaTeX OCR is **not** in the current app
 - No Convert Selection / Manual mark-as-math mode in the original MVP defer list (confirm in UI before assuming it exists)
 
