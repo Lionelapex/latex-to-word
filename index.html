@@ -218,12 +218,19 @@
     <footer class="mt-auto border-t border-slate-200 bg-white">
       <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <h2 class="text-sm font-semibold text-slate-900">About this LaTeX to Word converter</h2>
-        <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600">
+          <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600">
           <strong>LaTeX to Word</strong> (LaTeX2Word) turns ChatGPT output, Markdown, and LaTeX into a
           Microsoft Word <code>.docx</code> with <strong>editable native equations</strong> — not
           screenshots. Ideal for students, researchers, and anyone who needs LaTeX math in Word without
-          manual retyping. Your content stays on your device; nothing is uploaded to a server.
+          manual retyping. Your document is processed on your device. Conversion is not uploaded.
         </p>
+        <div class="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <button type="button" id="btn-send-error-report" class="btn self-start">Send error report</button>
+          <p class="text-xs leading-relaxed text-slate-500">
+            If something looks wrong, send a report. That report includes your pasted text and any
+            equations that failed.
+          </p>
+        </div>
       </div>
     </footer>
 

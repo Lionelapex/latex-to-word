@@ -73,4 +73,4 @@ Stack: header → input (textarea not tiny) → Convert → preview → export. 
 
 ## Mapping to today’s DOM (for implementers)
 
-Current IDs to keep unless we have a reason: `#input`, `#btn-paste`, `#btn-clear`, `#mode-select`, `#btn-docx`, `#btn-redownload`, `#btn-html`, `#preview`, `#stats`.
+Current IDs to keep unless we have a reason: `#input`, `#btn-paste`, `#btn-clear`, `#mode-select`, `#btn-docx`, `#btn-redownload`, `#btn-html`, `#preview`, `#stats`, `#btn-send-error-report`.

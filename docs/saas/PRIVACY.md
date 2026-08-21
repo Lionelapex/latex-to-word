@@ -8,6 +8,8 @@ UI copy: *Your document is processed locally in your browser.*
 
 Do not add analytics that send paste contents. Page views without content are a later optional decision.
 
+Crashes are stored **silently on the device**. Clients do not see that log. **Send error report** (user-clicked) emails the operator the **pasted document** and **failed/warning LaTeX**. Automatic error telemetry is **not** enabled. Conversion still runs locally until the user clicks send.
+
 ## After SaaS accounts
 
 Still true **if** we follow [ARCHITECTURE.md](ARCHITECTURE.md):

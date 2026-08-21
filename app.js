@@ -14,7 +14,16 @@ import {
   renderMathIssuesPanel,
 } from "./src/ui/math-issues-panel.js";
 import { exportCache } from "./src/ui/export-cache.js";
+import { errorLog } from "./src/ui/error-log.js";
 import { listMathIssues } from "./src/model/document-model.js";
+import {
+  createExceptionEntry,
+  createExportIssuesEntry,
+  createUserReportEntry,
+  shouldLogExportIssues,
+} from "./src/utils/error-log.js";
+import { sendErrorReport } from "./src/utils/send-error-report.js";
+import { getErrorReportEmail } from "./src/config/error-report.js";
 import { exportFilename } from "./src/utils/filename.js";
 import { DEFAULT_SAMPLE_KEY, SAMPLES } from "./src/samples/index.js";
 
@@ -28,6 +37,7 @@ const sampleSelect = document.getElementById("sample-select");
 const docxButton = document.getElementById("btn-docx");
 const redownloadButton = document.getElementById("btn-redownload");
 const exportHistorySelect = document.getElementById("export-history");
+const errorReportButton = document.getElementById("btn-send-error-report");
 
 let currentDoc = null;
 let activeIssueId = null;
@@ -42,10 +52,22 @@ if (savedDraft !== null && savedDraft.length > 0) {
 function convert() {
   hideNotice();
   activeIssueId = null;
-  currentDoc = parseDocument(input.value, { mode: modeSelect.value });
-  renderPreview(preview, currentDoc);
-  updateStats(currentDoc.stats);
-  renderIssuesPanel();
+  try {
+    currentDoc = parseDocument(input.value, { mode: modeSelect.value });
+    renderPreview(preview, currentDoc);
+    updateStats(currentDoc.stats);
+    renderIssuesPanel();
+  } catch (error) {
+    currentDoc = null;
+    preview.replaceChildren();
+    statsEl.hidden = true;
+    if (mathIssuesEl) {
+      mathIssuesEl.hidden = true;
+      mathIssuesEl.replaceChildren();
+    }
+    showNotice(error.message || "Could not convert this document.");
+    void captureException("parse", error);
+  }
 }
 
 const autoConvert = createAutoConvert(convert);
@@ -162,30 +184,97 @@ async function rememberExport(type, blob, filename) {
   await updateExportControls();
 }
 
+async function captureException(stage, error) {
+  await errorLog.record(
+    createExceptionEntry({
+      stage,
+      error,
+      mode: modeSelect?.value,
+    }),
+  );
+}
+
+async function rememberConversionIssues(stage) {
+  if (!currentDoc || !shouldLogExportIssues(currentDoc.stats, listMathIssues(currentDoc))) return;
+  await errorLog.record(
+    createExportIssuesEntry({
+      mode: modeSelect?.value,
+      stats: currentDoc.stats,
+      issues: listMathIssues(currentDoc),
+      stage,
+    }),
+  );
+}
+
+async function sendErrorReportToOwner() {
+  if (errorReportButton?.disabled) return;
+  if (errorReportButton) errorReportButton.disabled = true;
+  try {
+    flushAutoConvert();
+    await errorLog.ready;
+    const issues = currentDoc ? listMathIssues(currentDoc) : [];
+    if (shouldLogExportIssues(currentDoc?.stats, issues)) {
+      await rememberConversionIssues("report");
+    }
+    await errorLog.record(
+      createUserReportEntry({
+        mode: modeSelect?.value,
+      }),
+    );
+    await sendErrorReport(errorLog.list(), {
+      email: getErrorReportEmail(),
+      document: input.value,
+      issues,
+    });
+    showNotice("Thanks — the report was sent.", false);
+  } catch {
+    showNotice("Could not send the report right now. Please try again.");
+  } finally {
+    if (errorReportButton) errorReportButton.disabled = false;
+  }
+}
+
 async function downloadDocx() {
-  if (!currentDoc) flushAutoConvert();
-  const blob = await documentToDocxBlob(currentDoc);
-  const name = exportName("docx");
-  downloadBlob(blob, name);
-  await rememberExport("docx", blob, name);
-  showNotice(`Downloaded ${name}`, false);
+  try {
+    if (!currentDoc) flushAutoConvert();
+    const blob = await documentToDocxBlob(currentDoc);
+    const name = exportName("docx");
+    downloadBlob(blob, name);
+    await rememberExport("docx", blob, name);
+    await rememberConversionIssues("docx");
+    showNotice(`Downloaded ${name}`, false);
+  } catch (error) {
+    await captureException("docx", error);
+    showNotice(error.message || "Could not build the Word document.");
+  }
 }
 
 async function downloadHtml() {
-  if (!currentDoc) flushAutoConvert();
-  const html = documentToHtmlFile(currentDoc);
-  const name = exportName("html");
-  const blob = new Blob([html], { type: "text/html" });
-  downloadBlob(blob, name);
-  await rememberExport("html", blob, name);
-  showNotice(`Downloaded ${name}`, false);
+  try {
+    if (!currentDoc) flushAutoConvert();
+    const html = documentToHtmlFile(currentDoc);
+    const name = exportName("html");
+    const blob = new Blob([html], { type: "text/html" });
+    downloadBlob(blob, name);
+    await rememberExport("html", blob, name);
+    await rememberConversionIssues("html");
+    showNotice(`Downloaded ${name}`, false);
+  } catch (error) {
+    await captureException("html", error);
+    showNotice(error.message || "Could not build the HTML export.");
+  }
 }
 
 function redownloadSelected(id = null) {
-  const entry = id ? exportCache.getById(id) : exportCache.getLast();
-  if (!entry) return;
-  downloadBlob(entry.blob, entry.filename);
-  showNotice(`Downloaded ${entry.filename} again`, false);
+  try {
+    const entry = id ? exportCache.getById(id) : exportCache.getLast();
+    if (!entry) return;
+    downloadBlob(entry.blob, entry.filename);
+    showNotice(`Downloaded ${entry.filename} again`, false);
+  } catch (error) {
+    void captureException("redownload", error);
+    showNotice(error.message || "Could not download that file again.");
+  }
 }
 
 document.getElementById("btn-clear").addEventListener("click", () => {
@@ -202,6 +291,7 @@ document.getElementById("btn-paste").addEventListener("click", async () => {
     scheduleDraftSave(input.value);
     flushAutoConvert();
   } catch (error) {
+    void captureException("clipboard", error);
     showNotice(error.message || "Could not read the clipboard. Paste into the box with Ctrl+V.");
   }
 });
@@ -265,6 +355,18 @@ exportHistorySelect?.addEventListener("change", () => {
 
 document.getElementById("stat-failed").addEventListener("click", () => highlightFailed("failed"));
 document.getElementById("stat-warnings").addEventListener("click", () => highlightFailed("warnings"));
+
+errorReportButton?.addEventListener("click", () => {
+  void sendErrorReportToOwner();
+});
+
+window.addEventListener("error", (event) => {
+  void captureException("runtime", event.error || event.message);
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  void captureException("runtime", event.reason);
+});
 
 document.addEventListener("keydown", (event) => {
   const mod = event.ctrlKey || event.metaKey;

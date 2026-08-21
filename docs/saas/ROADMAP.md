@@ -22,6 +22,7 @@ These improve daily use **before** subscriptions:
 6. ~~Copy-for-Word as first-class with clear fallback to download~~ — **removed** (clipboard paste did not yield editable Word equations)
 7. Keyboard shortcuts (download, HTML) — **done**
 8. Live auto-convert preview (no manual Convert button) — **done**
+9. Silent error capture + **Send error report** to the operator inbox (no client-facing log) — **done**
 
 ## SaaS (accounts + money)
 

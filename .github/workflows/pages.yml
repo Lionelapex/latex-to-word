@@ -36,6 +36,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_ERROR_REPORT_EMAIL: ${{ secrets.VITE_ERROR_REPORT_EMAIL }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

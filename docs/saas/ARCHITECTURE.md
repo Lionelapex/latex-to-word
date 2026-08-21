@@ -58,3 +58,4 @@ Would require a **backend + vendor** (e.g. Mathpix) or self-hosted model. API ke
 
 - Sending document content to an LLM
 - Electron / Word add-in (possible later; same document model)
+- Automatic error telemetry (the free app captures silently on-device; **Send error report** emails the pasted document and failed LaTeX to the operator via FormSubmit). A future `POST /errors` on the SaaS API may replace FormSubmit — only after a DECISIONS.md entry.

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { parseDocument } from "../../src/parser/index.js";
 import {
   getMathIssueKind,
-  getMathIssueMessage,
   listFailedMath,
   listMathIssues,
 } from "../../src/model/document-model.js";
@@ -29,14 +28,11 @@ describe("math issue inspection", () => {
     expect(issues[0].display).toBe(true);
   });
 
-  it("lists warnings for partially parsed math", () => {
+  it("converts unknown math commands instead of warning", () => {
     const doc = parseDocument("$\\frac{a}{\\unknown{x}}$", { mode: "strict" });
     const math = doc.blocks[0].inlines.find((n) => n.type === "math");
-    expect(getMathIssueKind(math)).toBe("warning");
-    const issues = listMathIssues(doc);
-    expect(issues).toHaveLength(1);
-    expect(issues[0].kind).toBe("warning");
-    expect(getMathIssueMessage(math)).toContain("Unknown command");
+    expect(getMathIssueKind(math)).toBe(null);
+    expect(listMathIssues(doc)).toHaveLength(0);
   });
 
   it("returns empty list when all math converts cleanly", () => {

@@ -52,7 +52,7 @@ The app is entirely client-side. User content does not leave the browser. The UI
 
 ## Failed LaTeX
 
-Unknown or malformed expressions become `failed` nodes that preserve the original source. They are never deleted. Status counts: Converted / Warnings / Failed.
+Malformed expressions (unmatched braces, incomplete `\frac`) become `failed` nodes that preserve the original source. Unknown math commands are **not** failed: they render as named operators/functions so the rest of the equation still converts. Status counts: Converted / Warnings / Failed.
 
 ## Acceptance target
 

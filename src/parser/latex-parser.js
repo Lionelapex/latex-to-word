@@ -89,6 +89,15 @@ export const SYMBOLS = {
   Rightarrow: "⇒",
   Leftarrow: "⇐",
   Leftrightarrow: "⇔",
+  implies: "⟹",
+  impliedby: "⟸",
+  iff: "⟺",
+  longrightarrow: "⟶",
+  longleftarrow: "⟵",
+  longleftrightarrow: "⟷",
+  Longrightarrow: "⟹",
+  Longleftarrow: "⟸",
+  Longleftrightarrow: "⟺",
   infty: "∞",
   cdots: "⋯",
   ldots: "…",
@@ -139,6 +148,97 @@ export const SYMBOLS = {
   backslash: "\\",
   quad: "  ",
   qquad: "    ",
+  div: "÷",
+  therefore: "∴",
+  because: "∵",
+  mapsto: "↦",
+  to: "→",
+  colon: ":",
+  lceil: "⌈",
+  rceil: "⌉",
+  lfloor: "⌊",
+  rfloor: "⌋",
+  langle: "⟨",
+  rangle: "⟩",
+  vert: "|",
+  lvert: "|",
+  rvert: "|",
+  lVert: "∥",
+  rVert: "∥",
+  Vert: "∥",
+  uparrow: "↑",
+  downarrow: "↓",
+  updownarrow: "↕",
+  Uparrow: "⇑",
+  Downarrow: "⇓",
+  Updownarrow: "⇕",
+  nearrow: "↗",
+  searrow: "↘",
+  swarrow: "↙",
+  nwarrow: "↖",
+  hookrightarrow: "↪",
+  hookleftarrow: "↩",
+  twoheadrightarrow: "↠",
+  rightleftharpoons: "⇌",
+  leftrightharpoons: "⇋",
+  rightharpoonup: "⇀",
+  rightharpoondown: "⇁",
+  leqslant: "⩽",
+  geqslant: "⩾",
+  nleq: "≰",
+  ngeq: "≱",
+  napprox: "≉",
+  nsim: "≁",
+  ncong: "≇",
+  nsubseteq: "⊈",
+  nsupseteq: "⊉",
+  subsetneq: "⊊",
+  supsetneq: "⊋",
+  ni: "∋",
+  nexists: "∄",
+  land: "∧",
+  lor: "∨",
+  ominus: "⊖",
+  oslash: "⊘",
+  odot: "⊙",
+  boxplus: "⊞",
+  boxminus: "⊟",
+  boxtimes: "⊠",
+  sqsubset: "⊏",
+  sqsubseteq: "⊑",
+  sqsupset: "⊐",
+  sqsupseteq: "⊒",
+  sqcup: "⊔",
+  sqcap: "⊓",
+  wr: "≀",
+  dagger: "†",
+  ddagger: "‡",
+  dag: "†",
+  ddag: "‡",
+  checkmark: "✓",
+  blacksquare: "■",
+  surd: "√",
+  wp: "℘",
+  weierp: "℘",
+  nabla: "∇",
+  bot: "⊥",
+  top: "⊤",
+  vdash: "⊢",
+  dashv: "⊣",
+  models: "⊨",
+  cong: "≅",
+  doteq: "≐",
+  prec: "≺",
+  succ: "≻",
+  preceq: "≼",
+  succeq: "≽",
+  ll: "≪",
+  gg: "≫",
+  asymp: "≍",
+  smile: "⌣",
+  frown: "⌢",
+  bowtie: "⋈",
+  Join: "⋈",
 };
 
 const ACCENTS = {
@@ -151,6 +251,12 @@ const ACCENTS = {
   widetilde: "tilde",
   dot: "dot",
   ddot: "ddot",
+  breve: "breve",
+  check: "check",
+  acute: "acute",
+  grave: "grave",
+  mathring: "dot",
+  underbar: "bar",
 };
 
 const FUNCTIONS = new Set([
@@ -163,9 +269,21 @@ const FUNCTIONS = new Set([
   "arcsin",
   "arccos",
   "arctan",
+  "arccot",
+  "arcsec",
+  "arccsc",
   "sinh",
   "cosh",
   "tanh",
+  "coth",
+  "sech",
+  "csch",
+  "arcsinh",
+  "arccosh",
+  "arctanh",
+  "asin",
+  "acos",
+  "atan",
   "log",
   "ln",
   "lg",
@@ -175,6 +293,7 @@ const FUNCTIONS = new Set([
   "ker",
   "deg",
   "gcd",
+  "lcm",
   "min",
   "max",
   "sup",
@@ -182,11 +301,19 @@ const FUNCTIONS = new Set([
   "Pr",
   "arg",
   "hom",
+  "sgn",
+  "sign",
+  "tr",
+  "rank",
+  "Var",
+  "Cov",
+  "Corr",
 ]);
 
 const NARY = {
   sum: { char: "∑", limitStyle: "undOvr" },
   prod: { char: "∏", limitStyle: "undOvr" },
+  coprod: { char: "∐", limitStyle: "undOvr" },
   int: { char: "∫", limitStyle: "subSup" },
   iint: { char: "∬", limitStyle: "subSup" },
   iiint: { char: "∭", limitStyle: "subSup" },
@@ -194,6 +321,13 @@ const NARY = {
   lim: { char: "lim", limitStyle: "undOvr" },
   liminf: { char: "liminf", limitStyle: "undOvr" },
   limsup: { char: "limsup", limitStyle: "undOvr" },
+  bigcup: { char: "⋃", limitStyle: "undOvr" },
+  bigcap: { char: "⋂", limitStyle: "undOvr" },
+  bigvee: { char: "⋁", limitStyle: "undOvr" },
+  bigwedge: { char: "⋀", limitStyle: "undOvr" },
+  bigoplus: { char: "⨁", limitStyle: "undOvr" },
+  bigotimes: { char: "⨂", limitStyle: "undOvr" },
+  bigsqcup: { char: "⨆", limitStyle: "undOvr" },
 };
 
 const SKIP_COMMANDS = new Set([
@@ -204,6 +338,14 @@ const SKIP_COMMANDS = new Set([
   "limits",
   "nolimits",
   "mathstrut",
+  "notag",
+  "nonumber",
+  "tag",
+  "label",
+  "ref",
+  "eqref",
+  "relax",
+  "protect",
   "!",
   ",",
   ":",
@@ -212,7 +354,79 @@ const SKIP_COMMANDS = new Set([
   "/",
 ]);
 
-const RELATIONS = new Set(["=", "≠", "≤", "≥", "≈", "∼", "∈", "⊂", "⊆", "∪", "∩", "<", ">", "→", "←"]);
+const FONT_COMMANDS = new Set([
+  "mathbf",
+  "mathbb",
+  "mathcal",
+  "mathsf",
+  "mathit",
+  "mathfrak",
+  "mathscr",
+  "boldsymbol",
+  "bm",
+  "bold",
+  "emph",
+]);
+
+const WRAP_COMMANDS = new Set(["boxed", "underline", "phantom", "hphantom", "vphantom", "mathclap", "smash"]);
+
+const STRUCTURAL_COMMANDS = [
+  "left",
+  "right",
+  "begin",
+  "end",
+  "frac",
+  "dfrac",
+  "tfrac",
+  "cfrac",
+  "binom",
+  "choose",
+  "sqrt",
+  "text",
+  "mathrm",
+  "operatorname",
+  "textrm",
+  "mbox",
+  "overset",
+  "underset",
+  "textcolor",
+  "color",
+  "mathcolor",
+];
+
+const RELATIONS = new Set([
+  "=",
+  "≠",
+  "≤",
+  "≥",
+  "≈",
+  "∼",
+  "∈",
+  "⊂",
+  "⊆",
+  "∪",
+  "∩",
+  "<",
+  ">",
+  "→",
+  "←",
+  "⇒",
+  "⇐",
+  "⇔",
+  "⟹",
+  "⟸",
+  "⟺",
+  "⟶",
+  "⟵",
+  "⟷",
+  "↦",
+  "∴",
+  "∵",
+  "⩽",
+  "⩾",
+  "⊨",
+  "⊢",
+]);
 const BINARY_OPS = new Set(["+", "−", "-", "×", "·", "±", "∓", "*", "/"]);
 
 class ParseError extends Error {
@@ -436,6 +650,23 @@ class LatexParser {
     if (name === "text" || name === "mathrm" || name === "operatorname" || name === "textrm" || name === "mbox") {
       return text(this.parseTextGroup());
     }
+    if (FONT_COMMANDS.has(name) || WRAP_COMMANDS.has(name)) {
+      return this.parseGroupOrAtom();
+    }
+    if (name === "overset") {
+      const over = this.parseGroupOrAtom();
+      const base = this.parseGroupOrAtom();
+      return superscript(base, over);
+    }
+    if (name === "underset") {
+      const under = this.parseGroupOrAtom();
+      const base = this.parseGroupOrAtom();
+      return subscript(base, under);
+    }
+    if (name === "textcolor" || name === "color" || name === "mathcolor") {
+      this.parseGroupOrAtom();
+      return this.parseGroupOrAtom();
+    }
     if (ACCENTS[name]) {
       return accent(ACCENTS[name], this.parseGroupOrAtom());
     }
@@ -648,16 +879,45 @@ class LatexParser {
     return out;
   }
 
-  parseUnknownCommand(name, commandToken) {
-    const start = commandToken?.index ?? 0;
+  parseUnknownCommand(name) {
     this.skipSpace();
-    while (this.peek()?.type === "lbrace") {
-      this.parseBraced();
+    if (this.peek()?.type === "symbol" && this.peek().value === "*") {
+      this.pos += 1;
+      this.skipSpace();
     }
-    const last = this.tokens[Math.max(0, this.pos - 1)];
-    const end = last ? last.index + String(last.value ?? "").length : this.source.length;
-    return failed(this.source.slice(start, end), `Unknown command \\${name}`);
+    if (this.peek()?.type === "lbracket") {
+      this.pos += 1;
+      this.parseExprUntil(["rbracket"]);
+      this.match("rbracket");
+      this.skipSpace();
+    }
+    const args = [];
+    while (this.peek()?.type === "lbrace") {
+      args.push(group(this.parseBraced()));
+      this.skipSpace();
+    }
+    if (args.length === 0) {
+      return atom("function", name);
+    }
+    if (args.length === 1) {
+      return func(name, args[0]);
+    }
+    return func(name, group(args));
   }
 }
 
-export { ParseError, FUNCTIONS, NARY, ACCENTS };
+export function knownMathCommands() {
+  return new Set([
+    ...STRUCTURAL_COMMANDS,
+    ...FONT_COMMANDS,
+    ...WRAP_COMMANDS,
+    ...Object.keys(GREEK),
+    ...Object.keys(SYMBOLS),
+    ...Object.keys(ACCENTS),
+    ...Object.keys(NARY),
+    ...FUNCTIONS,
+    ...SKIP_COMMANDS,
+  ]);
+}
+
+export { ParseError, FUNCTIONS, NARY, ACCENTS, FONT_COMMANDS, WRAP_COMMANDS };
