@@ -172,7 +172,11 @@
             <kbd class="rounded border border-slate-300 bg-slate-100 px-1 font-sans text-[0.7rem]"
               >Ctrl+Shift+H</kbd
             >
-            download HTML.
+            download HTML,
+            <kbd class="rounded border border-slate-300 bg-slate-100 px-1 font-sans text-[0.7rem]"
+              >Ctrl+Shift+T</kbd
+            >
+            download Word with plain-text math.
           </p>
         </section>
 
@@ -195,6 +199,14 @@
                 <button type="button" id="btn-docx" class="btn btn-primary">Download .docx</button>
                 <button type="button" id="btn-redownload" class="btn" disabled>Download again</button>
                 <button type="button" id="btn-html" class="btn">Download HTML</button>
+                <button
+                  type="button"
+                  id="btn-docx-plain"
+                  class="btn"
+                  title="Word document with headings, lists, and tables; math as readable text instead of equations"
+                >
+                  Download .docx (plain text)
+                </button>
               </div>
               <label class="field-label sm:ml-auto sm:min-w-[10rem]">
                 Recent
@@ -225,10 +237,10 @@
           manual retyping. Your document is processed on your device. Conversion is not uploaded.
         </p>
         <div class="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <button type="button" id="btn-send-error-report" class="btn self-start">Send error report</button>
+          <button type="button" id="btn-send-error-report" class="btn self-start" disabled>Send error report</button>
           <p class="text-xs leading-relaxed text-slate-500">
-            If something looks wrong, send a report. That report includes your pasted text and any
-            equations that failed.
+            This is enabled only when the convert has a warning or error. The report includes your
+            pasted text and the equations that failed.
           </p>
         </div>
       </div>

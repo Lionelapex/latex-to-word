@@ -2,6 +2,12 @@
 
 Append-only. Newest at the top.
 
+## 2026-08-21 — Send error report only when there is a warning or error
+
+- **Decision:** The **Send error report** button is enabled only if the current convert has failed/warning math, or a crash was captured. Clean documents cannot send a report.
+- **Why:** Avoid empty inbox noise; the operator only wants real conversion problems.
+- **Status:** In effect.
+
 ## 2026-08-21 — Error reports include failed LaTeX and the pasted document
 
 - **Decision:** When the user clicks **Send error report**, the email includes the **full pasted text** and every **failed/warning math source**. Silent on-device capture still does not auto-upload. Conversion remains local until that click.

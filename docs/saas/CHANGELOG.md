@@ -2,9 +2,10 @@
 
 ## 2026-08-21
 
+- **Free app:** **Download .docx (plain text)** (`#btn-docx-plain`, Ctrl+Shift+T) is a Word document: headings, lists, and native tables stay Word objects; LaTeX math is converted to Unicode text instead of OMML.
 - **Free app:** unknown math commands now render (as named operators / functions) instead of becoming Failed/Warning; added common AMS arrows, relations, n-ary ops, and font commands (`\mathbb`, `\mathbf`, …).
 - **Free app:** parse `\implies`, `\impliedby`, `\iff`, and long arrows so ChatGPT calculus steps no longer warn as unknown commands.
-- **Free app:** **Send error report** now includes the pasted document and failed/warning LaTeX in the FormSubmit email to `lionelapex@gmail.com`.
+- **Free app:** **Send error report** is enabled only when the convert has a warning, a failed equation, or a captured crash.
 
 ## 2026-08-20
 

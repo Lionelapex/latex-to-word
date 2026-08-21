@@ -3,6 +3,7 @@ import {
   MAX_ERROR_LOG,
   MAX_SNIPPET_LENGTH,
   addErrorEntry,
+  canSendErrorReport,
   createExceptionEntry,
   createExportIssuesEntry,
   fingerprint,
@@ -57,6 +58,19 @@ describe("error log helpers", () => {
     expect(entry.message).toContain("2 failed");
     expect(shouldLogExportIssues(entry.stats, entry.issues)).toBe(true);
     expect(shouldLogExportIssues({ converted: 4, warnings: 0, failed: 0 }, [])).toBe(false);
+    expect(
+      canSendErrorReport({ stats: { converted: 4, warnings: 0, failed: 0 }, issues: [], entries: [] }),
+    ).toBe(false);
+    expect(
+      canSendErrorReport({ stats: { converted: 4, warnings: 2, failed: 0 }, issues: [{ kind: "warning" }] }),
+    ).toBe(true);
+    expect(
+      canSendErrorReport({
+        stats: { converted: 4, warnings: 0, failed: 0 },
+        issues: [],
+        entries: [createExceptionEntry({ error: new Error("boom"), createdAt: 1 })],
+      }),
+    ).toBe(true);
   });
 
   it("dedupes matching entries and bumps the count", () => {

@@ -13,7 +13,7 @@ Visual direction: **office utility** (Word / Notion), not a SaaS marketing landi
 ├──────────────────────────────┬───────────────────────────────────────────┤
 │ INPUT                        │ PREVIEW                                   │
 │ Math: Smart ▾                │ Converted  Warnings  Failed               │
-│ [Paste] [Clear]              │ [Download .docx] [Download again] [HTML]   │
+│ [Paste] [Clear]              │ [Download .docx] [Download again] [HTML] [DOCX plain text] │
 │                              │                                           │
 │ ┌──────────────────────────┐ │  ┌─────────────────────────────────────┐  │
 │ │ Paste ChatGPT, Markdown, │ │  │  (white page on gray canvas)        │  │
@@ -50,7 +50,7 @@ Optional later (free improvements, also useful for Pro):
 
 Same as today: stats, export buttons, Word-like page.
 
-**Download .docx** is the export path into Word.
+**Download .docx** is the export path into Word with native equations. **Download .docx (plain text)** is the same Word document with math as readable text (tables stay Word tables).
 
 ## Auth / billing screens (separate routes or modals)
 
@@ -73,4 +73,4 @@ Stack: header → input (textarea not tiny) → Convert → preview → export. 
 
 ## Mapping to today’s DOM (for implementers)
 
-Current IDs to keep unless we have a reason: `#input`, `#btn-paste`, `#btn-clear`, `#mode-select`, `#btn-docx`, `#btn-redownload`, `#btn-html`, `#preview`, `#stats`, `#btn-send-error-report`.
+Current IDs to keep unless we have a reason: `#input`, `#btn-paste`, `#btn-clear`, `#mode-select`, `#btn-docx`, `#btn-redownload`, `#btn-html`, `#btn-docx-plain`, `#preview`, `#stats`, `#btn-send-error-report`.

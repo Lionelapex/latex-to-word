@@ -70,15 +70,19 @@ export function sanitizeFilenameStem(title, fallback = "latex-to-word") {
 /**
  * @param {import('../model/document-model.js').createDocument extends Function ? ReturnType<typeof import('../model/document-model.js').createDocument> : object} document
  * @param {string} extension e.g. 'docx' or 'html'
- * @param {{ rawInput?: string, fallback?: string }} [options]
+ * @param {{ rawInput?: string, fallback?: string, stemSuffix?: string }} [options]
  */
 export function exportFilename(document, extension, options = {}) {
-  const { rawInput = "", fallback = "latex-to-word" } = options;
+  const { rawInput = "", fallback = "latex-to-word", stemSuffix = "" } = options;
   const title =
     titleFromDocument(document) ||
     titleFromRawInput(rawInput) ||
     fallback;
   const stem = sanitizeFilenameStem(title, fallback);
+  const suffix = String(stemSuffix || "")
+    .replace(/[^a-z0-9-]+/gi, "-")
+    .replace(/^-+|-+$/g, "");
+  const fullStem = suffix ? `${stem}-${suffix}` : stem;
   const ext = extension.replace(/^\./, "");
-  return `${stem}.${ext}`;
+  return `${fullStem}.${ext}`;
 }

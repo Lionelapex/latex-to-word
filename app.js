@@ -17,6 +17,7 @@ import { exportCache } from "./src/ui/export-cache.js";
 import { errorLog } from "./src/ui/error-log.js";
 import { listMathIssues } from "./src/model/document-model.js";
 import {
+  canSendErrorReport,
   createExceptionEntry,
   createExportIssuesEntry,
   createUserReportEntry,
@@ -68,6 +69,7 @@ function convert() {
     showNotice(error.message || "Could not convert this document.");
     void captureException("parse", error);
   }
+  updateErrorReportButton();
 }
 
 const autoConvert = createAutoConvert(convert);
@@ -153,9 +155,9 @@ function highlightFailed(kind) {
   first?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-function exportName(extension) {
+function exportName(extension, extra = {}) {
   if (!currentDoc) flushAutoConvert();
-  return exportFilename(currentDoc, extension, { rawInput: input.value });
+  return exportFilename(currentDoc, extension, { rawInput: input.value, ...extra });
 }
 
 async function updateExportControls() {
@@ -174,9 +176,14 @@ async function updateExportControls() {
   for (const entry of entries) {
     const option = document.createElement("option");
     option.value = entry.id;
-    option.textContent = `${entry.filename} (${entry.type.toUpperCase()})`;
+    option.textContent = `${entry.filename} (${exportTypeLabel(entry.type)})`;
     exportHistorySelect.appendChild(option);
   }
+}
+
+function exportTypeLabel(type) {
+  if (type === "docx-plain") return "DOCX PLAIN";
+  return String(type || "").toUpperCase();
 }
 
 async function rememberExport(type, blob, filename) {
@@ -192,6 +199,18 @@ async function captureException(stage, error) {
       mode: modeSelect?.value,
     }),
   );
+  updateErrorReportButton();
+}
+
+function updateErrorReportButton() {
+  if (!errorReportButton) return;
+  const issues = currentDoc ? listMathIssues(currentDoc) : [];
+  const allowed = canSendErrorReport({
+    stats: currentDoc?.stats,
+    issues,
+    entries: errorLog.list(),
+  });
+  errorReportButton.disabled = !allowed;
 }
 
 async function rememberConversionIssues(stage) {
@@ -207,12 +226,23 @@ async function rememberConversionIssues(stage) {
 }
 
 async function sendErrorReportToOwner() {
+  flushAutoConvert();
+  const issues = currentDoc ? listMathIssues(currentDoc) : [];
+  if (
+    !canSendErrorReport({
+      stats: currentDoc?.stats,
+      issues,
+      entries: errorLog.list(),
+    })
+  ) {
+    updateErrorReportButton();
+    showNotice("Nothing to send — there is no warning or error in this document.");
+    return;
+  }
   if (errorReportButton?.disabled) return;
   if (errorReportButton) errorReportButton.disabled = true;
   try {
-    flushAutoConvert();
     await errorLog.ready;
-    const issues = currentDoc ? listMathIssues(currentDoc) : [];
     if (shouldLogExportIssues(currentDoc?.stats, issues)) {
       await rememberConversionIssues("report");
     }
@@ -230,7 +260,7 @@ async function sendErrorReportToOwner() {
   } catch {
     showNotice("Could not send the report right now. Please try again.");
   } finally {
-    if (errorReportButton) errorReportButton.disabled = false;
+    updateErrorReportButton();
   }
 }
 
@@ -262,6 +292,21 @@ async function downloadHtml() {
   } catch (error) {
     await captureException("html", error);
     showNotice(error.message || "Could not build the HTML export.");
+  }
+}
+
+async function downloadPlainDocx() {
+  try {
+    if (!currentDoc) flushAutoConvert();
+    const blob = await documentToDocxBlob(currentDoc, { mathMode: "plain" });
+    const name = exportName("docx", { stemSuffix: "plain-text" });
+    downloadBlob(blob, name);
+    await rememberExport("docx-plain", blob, name);
+    await rememberConversionIssues("docx-plain");
+    showNotice(`Downloaded ${name}`, false);
+  } catch (error) {
+    await captureException("docx-plain", error);
+    showNotice(error.message || "Could not build the Word document.");
   }
 }
 
@@ -344,6 +389,12 @@ document.getElementById("btn-html")?.addEventListener("click", () => {
   });
 });
 
+document.getElementById("btn-docx-plain")?.addEventListener("click", () => {
+  downloadPlainDocx().catch((error) => {
+    showNotice(error.message || "Could not build the Word document.");
+  });
+});
+
 redownloadButton?.addEventListener("click", () => redownloadSelected());
 
 exportHistorySelect?.addEventListener("change", () => {
@@ -383,6 +434,11 @@ document.addEventListener("keydown", (event) => {
   if (mod && event.shiftKey && event.key.toLowerCase() === "h") {
     event.preventDefault();
     document.getElementById("btn-html")?.click();
+    return;
+  }
+  if (mod && event.shiftKey && event.key.toLowerCase() === "t") {
+    event.preventDefault();
+    document.getElementById("btn-docx-plain")?.click();
   }
 });
 
@@ -403,3 +459,4 @@ function downloadBlob(blob, filename) {
 
 convert();
 updateExportControls();
+errorLog.ready.then(updateErrorReportButton);

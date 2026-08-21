@@ -23,6 +23,7 @@ These improve daily use **before** subscriptions:
 7. Keyboard shortcuts (download, HTML) — **done**
 8. Live auto-convert preview (no manual Convert button) — **done**
 9. Silent error capture + **Send error report** to the operator inbox (no client-facing log) — **done**
+10. Plain-text math Word export (same .docx structure, math as Unicode, native tables) — **done**
 
 ## SaaS (accounts + money)
 

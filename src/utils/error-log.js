@@ -88,6 +88,11 @@ export function shouldLogExportIssues(stats, issues = []) {
   return issues.length > 0;
 }
 
+export function canSendErrorReport({ stats = null, issues = [], entries = [] } = {}) {
+  if (shouldLogExportIssues(stats, issues)) return true;
+  return (entries || []).some((entry) => entry.kind === "exception");
+}
+
 export function createExportIssuesEntry({
   mode = null,
   stats = null,

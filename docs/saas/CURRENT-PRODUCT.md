@@ -6,9 +6,9 @@ This is the app users get today. The paid product must **extend** this, not repl
 
 ## What it does
 
-Paste ChatGPT / Markdown / LaTeX → live preview → **Download .docx** with **native editable Word equations (OMML)**, or Download HTML.
+Paste ChatGPT / Markdown / LaTeX → live preview → **Download .docx** with **native editable Word equations (OMML)**, **Download .docx (plain text)** (same Word structure; math as readable text, not equations), or Download HTML.
 
-Conversion is not uploaded. No accounts. Optional **Send error report** emails the pasted document and failed LaTeX to the operator.
+Conversion is not uploaded. No accounts. **Send error report** is available only when there is a warning, failed equation, or crash; that click emails the paste and failed LaTeX to the operator.
 
 ## URLs and run
 
@@ -42,8 +42,9 @@ Raw paste
   → LaTeX parser → Math AST (failed nodes keep source)
   → Document model (source of truth)
        ├─ HTML + MathML preview
-       ├─ OMML → .docx
-       └─ OMML → .docx / HTML file
+       ├─ OMML → .docx (editable Word equations)
+       ├─ plain-text math → .docx (headings, lists, native tables; math as Unicode text)
+       └─ HTML file
 ```
 
 Never: LaTeX → HTML → Word. Never: equations as images.
@@ -52,9 +53,9 @@ Never: LaTeX → HTML → Word. Never: equations as images.
 
 - Header: title **LaTeX to Word**, subtitle, privacy line, three-step how-it-works
 - Left pane: example dropdown, Smart/Strict mode, Paste / Clear, textarea (autosaved locally; preview updates automatically)
-- Right pane: Converted / Warnings / Failed stats (clickable), math issues list, Download .docx / Download again / Download HTML / recent exports, Word-like preview
-- Footer: about copy plus **Send error report** (does not show error details)
-- Shortcuts: Ctrl+Enter refresh preview; Ctrl+Shift+D download .docx; Ctrl+Shift+H download HTML
+- Right pane: Converted / Warnings / Failed stats (clickable), math issues list, Download .docx / Download again / Download HTML / Download .docx (plain text) / recent exports, Word-like preview
+- Footer: about copy plus **Send error report** (enabled only when there is a warning or error; does not show error details)
+- Shortcuts: Ctrl+Enter refresh preview; Ctrl+Shift+D download .docx; Ctrl+Shift+H download HTML; Ctrl+Shift+T download .docx with plain-text math
 
 ## Math delimiters
 
@@ -66,7 +67,7 @@ Smart mode (default): obvious undelimited LaTeX (`\frac`, `\sqrt`, `\bar{x}`, Gr
 
 - Not full TeX (`\newcommand`, chemistry, TikZ). Unknown math commands still **render** as named operators instead of failing
 - Broken LaTeX (unmatched braces) is preserved, not deleted
-- **Download .docx** is the authoritative path into Word (native OMML)
+- **Download .docx** is the authoritative path into Word (native OMML). **Download .docx (plain text)** is the same Word document with math flattened to Unicode text (tables stay Word tables).
 - Recent exports (last 5) are cached locally in the browser for Download again
 - Error capture (last 50) is silent and local: JS crashes anytime; failed/warning math snapshots when the user downloads or clicks Send error report
 - Desktop Word is the acceptance target; Word Online is weaker
@@ -80,4 +81,4 @@ Smart mode (default): obvious undelimited LaTeX (`\frac`, `\sqrt`, `\bar{x}`, Gr
 - Do not add React/Vue/Svelte unless DECISIONS.md says so
 - Do not add a backend for conversion
 - Do not send paste content to analytics or an AI API
-- Error reports stay local unless the user clicks **Send error report** (that click includes the paste and failed math)
+- Error reports stay local unless the user clicks **Send error report** while a warning/error exists (that click includes the paste and failed math)

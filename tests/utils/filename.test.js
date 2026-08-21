@@ -42,6 +42,13 @@ describe("filename utilities", () => {
     );
   });
 
+  it("can add a stem suffix for the plain-text Word export", () => {
+    const doc = createDocument([
+      { type: "heading", level: 1, inlines: [{ type: "text", value: "Title" }] },
+    ]);
+    expect(exportFilename(doc, "docx", { stemSuffix: "plain-text" })).toBe("Title-plain-text.docx");
+  });
+
   it("sanitizes invalid Windows characters", () => {
     expect(sanitizeFilenameStem('File: bad/name?')).toBe("File badname");
     expect(sanitizeFilenameStem("")).toBe("latex-to-word");

@@ -18,7 +18,7 @@ Raw paste
   → LaTeX parser (Math AST, or a failed node that keeps the source)
   → Document Model
        → HTML/MathML preview
-       → OMML → DOCX (+ HTML file download)
+       → OMML → DOCX, or the same Word structure with math as Unicode text (+ HTML file download)
 ```
 
 Never convert LaTeX → HTML → Word. Never export equations as images.
