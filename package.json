@@ -9,10 +9,13 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "verify:ocr": "node scripts/verify-image-ocr.mjs",
+    "dev:restart": "powershell -ExecutionPolicy Bypass -File scripts/restart-dev.ps1"
   },
   "dependencies": {
     "docx": "^9.5.1",
+    "tesseract.js": "^7.0.0",
     "xml-js": "^1.6.8"
   },
   "devDependencies": {

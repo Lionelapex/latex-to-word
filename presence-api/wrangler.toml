@@ -1,0 +1,14 @@
+name = "latex-to-word-presence"
+main = "src/worker.js"
+compatibility_date = "2024-08-01"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[vars]
+ALLOWED_ORIGIN = "https://lionelapex.github.io"
+
+# Set secrets with:
+# npx wrangler secret put ADMIN_SECRET
+# npx wrangler secret put WEBHOOK_URL   # optional Discord/Slack webhook

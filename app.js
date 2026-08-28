@@ -2,10 +2,17 @@ import "./src/styles/main.css";
 import { parseDocument } from "./src/parser/index.js";
 import { renderPreview } from "./src/renderers/html-renderer.js";
 import { documentToDocxBlob } from "./src/exporters/docx-exporter.js";
-import { pasteFromClipboard } from "./src/exporters/clipboard-exporter.js";
+import { pasteFromClipboard, copyTextToClipboard } from "./src/exporters/clipboard-exporter.js";
 import { documentToHtmlFile } from "./src/exporters/html-exporter.js";
 import { normalizePastedContent } from "./src/parser/table-normalizer.js";
-import { insertAtCursor } from "./src/ui/editor.js";
+import { insertAtCursor, scrollToRange } from "./src/ui/editor.js";
+import {
+  extractTextFromImage,
+  formatOcrProgress,
+  getImageFileFromDataTransfer,
+  isImageFile,
+} from "./src/ui/image-ocr.js";
+import { createOcrResultPanel } from "./src/ui/ocr-result.js";
 import { clearDraft, loadDraft, scheduleDraftSave } from "./src/ui/draft.js";
 import { createAutoConvert } from "./src/ui/auto-convert.js";
 import {
@@ -14,19 +21,10 @@ import {
   renderMathIssuesPanel,
 } from "./src/ui/math-issues-panel.js";
 import { exportCache } from "./src/ui/export-cache.js";
-import { errorLog } from "./src/ui/error-log.js";
 import { listMathIssues } from "./src/model/document-model.js";
-import {
-  canSendErrorReport,
-  createExceptionEntry,
-  createExportIssuesEntry,
-  createUserReportEntry,
-  shouldLogExportIssues,
-} from "./src/utils/error-log.js";
-import { sendErrorReport } from "./src/utils/send-error-report.js";
-import { getErrorReportEmail } from "./src/config/error-report.js";
 import { exportFilename } from "./src/utils/filename.js";
 import { DEFAULT_SAMPLE_KEY, SAMPLES } from "./src/samples/index.js";
+import { startPresence } from "./src/analytics/presence.js";
 
 const input = document.getElementById("input");
 const preview = document.getElementById("preview");
@@ -38,10 +36,25 @@ const sampleSelect = document.getElementById("sample-select");
 const docxButton = document.getElementById("btn-docx");
 const redownloadButton = document.getElementById("btn-redownload");
 const exportHistorySelect = document.getElementById("export-history");
-const errorReportButton = document.getElementById("btn-send-error-report");
+const imageOcrButton = document.getElementById("btn-image-ocr");
+const imageInput = document.getElementById("image-input");
+const ocrPanel = createOcrResultPanel({
+  panel: document.getElementById("ocr-panel"),
+  titleEl: document.getElementById("ocr-panel-title"),
+  progressWrap: document.getElementById("ocr-progress-wrap"),
+  progressBar: document.getElementById("ocr-progress-bar"),
+  progressLabel: document.getElementById("ocr-progress-label"),
+  resultWrap: document.getElementById("ocr-result-wrap"),
+  previewEl: document.getElementById("ocr-preview"),
+  copyBtn: document.getElementById("btn-ocr-copy"),
+  jumpBtn: document.getElementById("btn-ocr-jump"),
+  dismissBtn: document.getElementById("btn-ocr-dismiss"),
+  errorEl: document.getElementById("ocr-error"),
+});
 
 let currentDoc = null;
 let activeIssueId = null;
+let ocrBusy = false;
 
 const savedDraft = loadDraft();
 if (savedDraft !== null && savedDraft.length > 0) {
@@ -53,23 +66,10 @@ if (savedDraft !== null && savedDraft.length > 0) {
 function convert() {
   hideNotice();
   activeIssueId = null;
-  try {
-    currentDoc = parseDocument(input.value, { mode: modeSelect.value });
-    renderPreview(preview, currentDoc);
-    updateStats(currentDoc.stats);
-    renderIssuesPanel();
-  } catch (error) {
-    currentDoc = null;
-    preview.replaceChildren();
-    statsEl.hidden = true;
-    if (mathIssuesEl) {
-      mathIssuesEl.hidden = true;
-      mathIssuesEl.replaceChildren();
-    }
-    showNotice(error.message || "Could not convert this document.");
-    void captureException("parse", error);
-  }
-  updateErrorReportButton();
+  currentDoc = parseDocument(input.value, { mode: modeSelect.value });
+  renderPreview(preview, currentDoc);
+  updateStats(currentDoc.stats);
+  renderIssuesPanel();
 }
 
 const autoConvert = createAutoConvert(convert);
@@ -134,6 +134,48 @@ function hideNotice() {
   notice.replaceChildren();
 }
 
+function setOcrBusy(busy) {
+  ocrBusy = busy;
+  if (imageOcrButton) {
+    imageOcrButton.disabled = busy;
+    imageOcrButton.textContent = busy ? "Reading image…" : "Extract from image";
+  }
+}
+
+async function importImageForOcr(file) {
+  if (!file || !isImageFile(file)) {
+    ocrPanel.showError("Choose a PNG, JPG, or other image file.");
+    return;
+  }
+  if (ocrBusy) return;
+
+  setOcrBusy(true);
+  ocrPanel.showProgress(0, formatOcrProgress(0));
+
+  try {
+    const text = await extractTextFromImage(file, {
+      onProgress: (progress) => {
+        ocrPanel.showProgress(progress, formatOcrProgress(progress));
+      },
+    });
+
+    if (!text) {
+      ocrPanel.showError("No text was found in that image.");
+      return;
+    }
+
+    const range = insertAtCursor(input, text);
+    ocrPanel.showResult(text, range);
+    scrollToRange(input, range.start, range.end);
+    scheduleDraftSave(input.value);
+    flushAutoConvert();
+  } catch (error) {
+    ocrPanel.showError(error.message || "Could not read text from the image.");
+  } finally {
+    setOcrBusy(false);
+  }
+}
+
 function highlightFailed(kind) {
   activeIssueId = null;
   renderIssuesPanel();
@@ -155,9 +197,9 @@ function highlightFailed(kind) {
   first?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-function exportName(extension, extra = {}) {
+function exportName(extension) {
   if (!currentDoc) flushAutoConvert();
-  return exportFilename(currentDoc, extension, { rawInput: input.value, ...extra });
+  return exportFilename(currentDoc, extension, { rawInput: input.value });
 }
 
 async function updateExportControls() {
@@ -176,14 +218,9 @@ async function updateExportControls() {
   for (const entry of entries) {
     const option = document.createElement("option");
     option.value = entry.id;
-    option.textContent = `${entry.filename} (${exportTypeLabel(entry.type)})`;
+    option.textContent = `${entry.filename} (${entry.type.toUpperCase()})`;
     exportHistorySelect.appendChild(option);
   }
-}
-
-function exportTypeLabel(type) {
-  if (type === "docx-plain") return "DOCX PLAIN";
-  return String(type || "").toUpperCase();
 }
 
 async function rememberExport(type, blob, filename) {
@@ -191,141 +228,37 @@ async function rememberExport(type, blob, filename) {
   await updateExportControls();
 }
 
-async function captureException(stage, error) {
-  await errorLog.record(
-    createExceptionEntry({
-      stage,
-      error,
-      mode: modeSelect?.value,
-    }),
-  );
-  updateErrorReportButton();
-}
-
-function updateErrorReportButton() {
-  if (!errorReportButton) return;
-  const issues = currentDoc ? listMathIssues(currentDoc) : [];
-  const allowed = canSendErrorReport({
-    stats: currentDoc?.stats,
-    issues,
-    entries: errorLog.list(),
-  });
-  errorReportButton.disabled = !allowed;
-}
-
-async function rememberConversionIssues(stage) {
-  if (!currentDoc || !shouldLogExportIssues(currentDoc.stats, listMathIssues(currentDoc))) return;
-  await errorLog.record(
-    createExportIssuesEntry({
-      mode: modeSelect?.value,
-      stats: currentDoc.stats,
-      issues: listMathIssues(currentDoc),
-      stage,
-    }),
-  );
-}
-
-async function sendErrorReportToOwner() {
-  flushAutoConvert();
-  const issues = currentDoc ? listMathIssues(currentDoc) : [];
-  if (
-    !canSendErrorReport({
-      stats: currentDoc?.stats,
-      issues,
-      entries: errorLog.list(),
-    })
-  ) {
-    updateErrorReportButton();
-    showNotice("Nothing to send — there is no warning or error in this document.");
-    return;
-  }
-  if (errorReportButton?.disabled) return;
-  if (errorReportButton) errorReportButton.disabled = true;
-  try {
-    await errorLog.ready;
-    if (shouldLogExportIssues(currentDoc?.stats, issues)) {
-      await rememberConversionIssues("report");
-    }
-    await errorLog.record(
-      createUserReportEntry({
-        mode: modeSelect?.value,
-      }),
-    );
-    await sendErrorReport(errorLog.list(), {
-      email: getErrorReportEmail(),
-      document: input.value,
-      issues,
-    });
-    showNotice("Thanks — the report was sent.", false);
-  } catch {
-    showNotice("Could not send the report right now. Please try again.");
-  } finally {
-    updateErrorReportButton();
-  }
-}
-
 async function downloadDocx() {
-  try {
-    if (!currentDoc) flushAutoConvert();
-    const blob = await documentToDocxBlob(currentDoc);
-    const name = exportName("docx");
-    downloadBlob(blob, name);
-    await rememberExport("docx", blob, name);
-    await rememberConversionIssues("docx");
-    showNotice(`Downloaded ${name}`, false);
-  } catch (error) {
-    await captureException("docx", error);
-    showNotice(error.message || "Could not build the Word document.");
-  }
+  if (!currentDoc) flushAutoConvert();
+  const blob = await documentToDocxBlob(currentDoc);
+  const name = exportName("docx");
+  downloadBlob(blob, name);
+  await rememberExport("docx", blob, name);
+  showNotice(`Downloaded ${name}`, false);
 }
 
 async function downloadHtml() {
-  try {
-    if (!currentDoc) flushAutoConvert();
-    const html = documentToHtmlFile(currentDoc);
-    const name = exportName("html");
-    const blob = new Blob([html], { type: "text/html" });
-    downloadBlob(blob, name);
-    await rememberExport("html", blob, name);
-    await rememberConversionIssues("html");
-    showNotice(`Downloaded ${name}`, false);
-  } catch (error) {
-    await captureException("html", error);
-    showNotice(error.message || "Could not build the HTML export.");
-  }
-}
-
-async function downloadPlainDocx() {
-  try {
-    if (!currentDoc) flushAutoConvert();
-    const blob = await documentToDocxBlob(currentDoc, { mathMode: "plain" });
-    const name = exportName("docx", { stemSuffix: "plain-text" });
-    downloadBlob(blob, name);
-    await rememberExport("docx-plain", blob, name);
-    await rememberConversionIssues("docx-plain");
-    showNotice(`Downloaded ${name}`, false);
-  } catch (error) {
-    await captureException("docx-plain", error);
-    showNotice(error.message || "Could not build the Word document.");
-  }
+  if (!currentDoc) flushAutoConvert();
+  const html = documentToHtmlFile(currentDoc);
+  const name = exportName("html");
+  const blob = new Blob([html], { type: "text/html" });
+  downloadBlob(blob, name);
+  await rememberExport("html", blob, name);
+  showNotice(`Downloaded ${name}`, false);
 }
 
 function redownloadSelected(id = null) {
-  try {
-    const entry = id ? exportCache.getById(id) : exportCache.getLast();
-    if (!entry) return;
-    downloadBlob(entry.blob, entry.filename);
-    showNotice(`Downloaded ${entry.filename} again`, false);
-  } catch (error) {
-    void captureException("redownload", error);
-    showNotice(error.message || "Could not download that file again.");
-  }
+  const entry = id ? exportCache.getById(id) : exportCache.getLast();
+  if (!entry) return;
+  downloadBlob(entry.blob, entry.filename);
+  showNotice(`Downloaded ${entry.filename} again`, false);
 }
 
 document.getElementById("btn-clear").addEventListener("click", () => {
   autoConvert.cancel();
   input.value = "";
   clearDraft();
+  ocrPanel.hide();
   if (sampleSelect) sampleSelect.value = "";
   flushAutoConvert();
 });
@@ -336,9 +269,38 @@ document.getElementById("btn-paste").addEventListener("click", async () => {
     scheduleDraftSave(input.value);
     flushAutoConvert();
   } catch (error) {
-    void captureException("clipboard", error);
     showNotice(error.message || "Could not read the clipboard. Paste into the box with Ctrl+V.");
   }
+});
+
+imageOcrButton?.addEventListener("click", () => {
+  imageInput?.click();
+});
+
+imageInput?.addEventListener("change", () => {
+  const file = imageInput.files?.[0];
+  imageInput.value = "";
+  if (file) importImageForOcr(file);
+});
+
+document.getElementById("btn-ocr-copy")?.addEventListener("click", async () => {
+  const text = ocrPanel.getLastText();
+  if (!text) return;
+  try {
+    await copyTextToClipboard(text);
+    showNotice("Copied extracted text to clipboard.", false);
+  } catch (error) {
+    showNotice(error.message || "Could not copy extracted text.");
+  }
+});
+
+document.getElementById("btn-ocr-jump")?.addEventListener("click", () => {
+  const range = ocrPanel.resolveRange(input);
+  if (!range) {
+    showNotice("Could not find the extracted text in the editor. It may have been edited.");
+    return;
+  }
+  scrollToRange(input, range.start, range.end);
 });
 
 input.addEventListener("input", () => {
@@ -347,6 +309,13 @@ input.addEventListener("input", () => {
 });
 
 input.addEventListener("paste", (event) => {
+  const imageFile = getImageFileFromDataTransfer(event.clipboardData);
+  if (imageFile) {
+    event.preventDefault();
+    importImageForOcr(imageFile);
+    return;
+  }
+
   const html = event.clipboardData?.getData("text/html") || "";
   const text = event.clipboardData?.getData("text/plain") || "";
   const normalized = normalizePastedContent({ html, text });
@@ -389,12 +358,6 @@ document.getElementById("btn-html")?.addEventListener("click", () => {
   });
 });
 
-document.getElementById("btn-docx-plain")?.addEventListener("click", () => {
-  downloadPlainDocx().catch((error) => {
-    showNotice(error.message || "Could not build the Word document.");
-  });
-});
-
 redownloadButton?.addEventListener("click", () => redownloadSelected());
 
 exportHistorySelect?.addEventListener("change", () => {
@@ -406,18 +369,6 @@ exportHistorySelect?.addEventListener("change", () => {
 
 document.getElementById("stat-failed").addEventListener("click", () => highlightFailed("failed"));
 document.getElementById("stat-warnings").addEventListener("click", () => highlightFailed("warnings"));
-
-errorReportButton?.addEventListener("click", () => {
-  void sendErrorReportToOwner();
-});
-
-window.addEventListener("error", (event) => {
-  void captureException("runtime", event.error || event.message);
-});
-
-window.addEventListener("unhandledrejection", (event) => {
-  void captureException("runtime", event.reason);
-});
 
 document.addEventListener("keydown", (event) => {
   const mod = event.ctrlKey || event.metaKey;
@@ -434,11 +385,6 @@ document.addEventListener("keydown", (event) => {
   if (mod && event.shiftKey && event.key.toLowerCase() === "h") {
     event.preventDefault();
     document.getElementById("btn-html")?.click();
-    return;
-  }
-  if (mod && event.shiftKey && event.key.toLowerCase() === "t") {
-    event.preventDefault();
-    document.getElementById("btn-docx-plain")?.click();
   }
 });
 
@@ -459,4 +405,4 @@ function downloadBlob(blob, filename) {
 
 convert();
 updateExportControls();
-errorLog.ready.then(updateErrorReportButton);
+startPresence();

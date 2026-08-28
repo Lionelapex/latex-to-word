@@ -106,6 +106,55 @@
     @apply border-t border-amber-200 bg-amber-50 text-amber-900;
   }
 
+  .ocr-panel {
+    @apply border-b border-blue-200 bg-blue-50/80 px-3 py-3 sm:px-4;
+  }
+
+  .ocr-panel-header {
+    @apply mb-2 flex items-center justify-between gap-2;
+  }
+
+  .ocr-panel-title {
+    @apply text-xs font-semibold uppercase tracking-wide text-blue-800;
+  }
+
+  .ocr-dismiss {
+    @apply px-2 py-1 text-xs;
+  }
+
+  .ocr-progress-wrap {
+    @apply space-y-2;
+  }
+
+  .ocr-progress-track {
+    @apply h-2 overflow-hidden rounded-full bg-blue-100;
+  }
+
+  .ocr-progress-bar {
+    @apply h-full rounded-full bg-blue-600 transition-[width] duration-200;
+    width: 0%;
+  }
+
+  .ocr-progress-label {
+    @apply text-sm text-blue-900;
+  }
+
+  .ocr-result-wrap {
+    @apply space-y-3;
+  }
+
+  .ocr-preview {
+    @apply max-h-32 overflow-auto rounded-lg border border-blue-200 bg-white px-3 py-2 font-mono text-sm leading-relaxed whitespace-pre-wrap text-slate-800;
+  }
+
+  .ocr-actions {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .ocr-error {
+    @apply rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900;
+  }
+
   /* Word-like preview page (inside #preview) */
   .word-page {
     @apply mx-auto min-h-[11in] max-w-[8.5in] bg-white px-[1.15in] py-[1in] shadow-lg;

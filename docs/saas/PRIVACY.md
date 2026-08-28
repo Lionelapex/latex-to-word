@@ -2,11 +2,27 @@
 
 ## Today (free GitHub Pages app)
 
-**True and required:** pasted content is processed **only in the browser**. No accounts, no upload, no analytics of document text.
+**True and required:** pasted content is processed **only in the browser**. No accounts, no upload of document text.
 
 UI copy: *Your document is processed locally in your browser.*
 
-Do not add analytics that send paste contents. Page views without content are a later optional decision.
+## Optional presence analytics (owner)
+
+If the site owner deploys `presence-api/` (Cloudflare Worker) and sets `VITE_PRESENCE_API_URL` at build time, the app sends **anonymous heartbeats** only:
+
+- Random session id (browser tab)
+- IP address (read on the server from the request)
+- Browser User-Agent, language, timezone, page path
+
+**Not sent:** LaTeX, ChatGPT paste, previews, exports, or filenames.
+
+**Not available:** desktop/computer name (browsers do not expose it).
+
+Owner can view active users via `GET /admin/stats` or `public/admin-presence.html`.
+
+Optional `WEBHOOK_URL` secret can notify the owner when a new session starts.
+
+Do not add analytics that send paste contents.
 
 Crashes are stored **silently on the device**. Clients do not see that log. **Send error report** (user-clicked) emails the operator the **pasted document** and **failed/warning LaTeX**. Automatic error telemetry is **not** enabled. Conversion still runs locally until the user clicks send.
 

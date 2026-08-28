@@ -6,7 +6,7 @@
     <title>LaTeX to Word: Free LaTeX2Word Converter | ChatGPT to DOCX with Editable Equations</title>
     <meta
       name="description"
-      content="Free LaTeX to Word converter (LaTeX2Word). Paste any LaTeX, ChatGPT, or Markdown and download a .docx with native editable Word equations. Images and PDFs are not yet supported. Runs locally in your browser, no upload."
+      content="Free LaTeX to Word converter (LaTeX2Word). Paste any LaTeX, ChatGPT, or Markdown and download a .docx with native editable Word equations. Extract plain text from images in your browser. PDFs are not yet supported."
     />
     <meta
       name="keywords"
@@ -24,7 +24,7 @@
     />
     <meta
       property="og:description"
-      content="Paste any LaTeX, ChatGPT, or Markdown, preview instantly, and download a Word document with editable equations. Images and PDFs are not yet supported."
+      content="Paste any LaTeX, ChatGPT, or Markdown, preview instantly, and download a Word document with editable equations. Extract plain text from pasted or uploaded images locally in your browser."
     />
     <meta property="og:locale" content="en_US" />
     <meta name="twitter:card" content="summary" />
@@ -58,6 +58,7 @@
           "ChatGPT math to DOCX",
           "Editable Word equations",
           "Markdown and table support",
+          "Image text extraction (OCR)",
           "Local browser processing"
         ]
       }
@@ -73,7 +74,7 @@
               LaTeX to Word: convert ChatGPT and LaTeX to editable DOCX
             </h1>
             <p class="mt-2 text-sm leading-relaxed text-slate-600 sm:text-base">
-              Paste any LaTeX content. Images and PDFs are not yet supported.
+              Paste any LaTeX content, or extract plain text from an image. PDFs are not yet supported.
             </p>
           </div>
           <p
@@ -144,8 +145,44 @@
             </label>
             <div class="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto">
               <button type="button" id="btn-paste" class="btn flex-1 sm:flex-none">Paste</button>
+              <button type="button" id="btn-image-ocr" class="btn flex-1 sm:flex-none">Extract from image</button>
               <button type="button" id="btn-clear" class="btn flex-1 sm:flex-none">Clear</button>
             </div>
+          </div>
+
+          <input
+            type="file"
+            id="image-input"
+            accept="image/*"
+            class="sr-only"
+            aria-hidden="true"
+            tabindex="-1"
+          />
+
+          <div id="ocr-panel" class="ocr-panel" hidden aria-live="polite" aria-label="Image text extraction">
+            <div class="ocr-panel-header">
+              <p id="ocr-panel-title" class="ocr-panel-title">Extracted from image</p>
+              <button type="button" id="btn-ocr-dismiss" class="btn ocr-dismiss">Dismiss</button>
+            </div>
+
+            <div id="ocr-progress-wrap" class="ocr-progress-wrap" hidden>
+              <div class="ocr-progress-track" aria-hidden="true">
+                <div id="ocr-progress-bar" class="ocr-progress-bar"></div>
+              </div>
+              <p id="ocr-progress-label" class="ocr-progress-label">Reading image… 0%</p>
+            </div>
+
+            <div id="ocr-result-wrap" class="ocr-result-wrap" hidden>
+              <pre id="ocr-preview" class="ocr-preview"></pre>
+              <div class="ocr-actions">
+                <button type="button" id="btn-ocr-copy" class="btn btn-primary" disabled>
+                  Copy extracted text
+                </button>
+                <button type="button" id="btn-ocr-jump" class="btn">Show in editor</button>
+              </div>
+            </div>
+
+            <p id="ocr-error" class="ocr-error" hidden role="alert"></p>
           </div>
 
           <label for="input" class="sr-only">Paste LaTeX, ChatGPT, or Markdown content</label>
@@ -153,12 +190,12 @@
             id="input"
             spellcheck="false"
             class="min-h-[240px] flex-1 resize-none border-0 bg-white px-4 py-3 font-mono text-sm leading-relaxed text-slate-800 outline-none focus:ring-2 focus:ring-inset focus:ring-blue-200 lg:min-h-0"
-            placeholder="Paste any LaTeX content. Images and PDFs are not yet supported."
+            placeholder="Paste any LaTeX content, or paste/upload an image to extract plain text. PDFs are not yet supported."
           ></textarea>
 
           <p class="border-t border-slate-200 px-4 py-3 text-xs leading-relaxed text-slate-500">
-            Paste any LaTeX, ChatGPT, or Markdown. Images and PDFs are not yet supported.
-            Math delimiters: <code>\[...\]</code>, <code>\(...\)</code>, <code>$$...$$</code>, and
+            Paste any LaTeX, ChatGPT, or Markdown. Upload an image or paste one with Ctrl+V to extract plain
+            text locally (Tesseract.js). PDFs are not yet supported. Math delimiters: <code>\[...\]</code>, <code>\(...\)</code>, <code>$$...$$</code>, and
             <code>$...$</code>. Tables paste as Markdown pipes. Draft autosaves locally. Shortcuts:
             <kbd class="rounded border border-slate-300 bg-slate-100 px-1 font-sans text-[0.7rem]"
               >Ctrl+Enter</kbd

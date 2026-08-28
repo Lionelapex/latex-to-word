@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>LaTeX to Word — Active users</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 960px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        color: #0f172a;
+      }
+      label {
+        display: block;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+      input {
+        width: 100%;
+        margin-top: 0.35rem;
+        padding: 0.55rem 0.65rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+      }
+      button {
+        margin-top: 1rem;
+        padding: 0.55rem 0.9rem;
+        border: 0;
+        border-radius: 8px;
+        background: #1d4ed8;
+        color: #fff;
+        cursor: pointer;
+      }
+      pre {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: auto;
+      }
+      .note {
+        color: #64748b;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Active users</h1>
+    <p class="note">
+      Owner-only view. Requires the presence API URL and admin secret from
+      <code>presence-api/README.md</code>. Desktop names are not available from browsers; IP and
+      User-Agent are shown instead.
+    </p>
+
+    <label>
+      Presence API URL
+      <input id="api-url" type="url" placeholder="https://latex-to-word-presence.example.workers.dev" />
+    </label>
+    <label>
+      Admin secret
+      <input id="admin-secret" type="password" autocomplete="off" />
+    </label>
+    <button type="button" id="refresh">Refresh stats</button>
+
+    <pre id="output">Enter credentials and click Refresh.</pre>
+
+    <script type="module">
+      const output = document.getElementById("output");
+      const apiInput = document.getElementById("api-url");
+      const secretInput = document.getElementById("admin-secret");
+
+      const savedUrl = localStorage.getItem("presence-admin-url");
+      if (savedUrl) apiInput.value = savedUrl;
+
+      document.getElementById("refresh").addEventListener("click", async () => {
+        const base = apiInput.value.trim().replace(/\/$/, "");
+        const secret = secretInput.value.trim();
+        if (!base || !secret) {
+          output.textContent = "API URL and admin secret are required.";
+          return;
+        }
+        localStorage.setItem("presence-admin-url", base);
+        output.textContent = "Loading…";
+        try {
+          const res = await fetch(`${base}/admin/stats`, {
+            headers: { Authorization: `Bearer ${secret}` },
+          });
+          const data = await res.json();
+          output.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          output.textContent = String(error.message || error);
+        }
+      });
+    </script>
+  </body>
+</html>
