@@ -37,9 +37,8 @@ jobs:
       - name: Build
         env:
           VITE_PRESENCE_API_URL: ${{ secrets.VITE_PRESENCE_API_URL }}
-        run: npm run build
-        env:
           VITE_ERROR_REPORT_EMAIL: ${{ secrets.VITE_ERROR_REPORT_EMAIL }}
+        run: npm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
