@@ -21,6 +21,21 @@ function firstTable(doc) {
   return doc.blocks.find((block) => block.type === "table");
 }
 
+function hasMath(cell, source) {
+  const walk = (nodes) =>
+    (nodes || []).some((node) => {
+      if (node.type === "math" && node.source === source) return true;
+      if (node.children) return walk(node.children);
+      return false;
+    });
+  return walk(cell?.inlines);
+}
+
+function tbodyRowCount(html) {
+  const tbody = String(html).match(/<tbody>([\s\S]*?)<\/tbody>/)?.[1] ?? "";
+  return (tbody.match(/<tr>/g) || []).length;
+}
+
 describe("table paste and reconstruction", () => {
   it("parses a GFM table with inline $\\mu$ in a cell", () => {
     const input = `| Variable | Symbol |\n| --- | --- |\n| mean | $\\mu$ |`;
@@ -331,5 +346,66 @@ $1.000$ kg`;
     const doc = parseDocument(input, { mode: "strict" });
     expect(doc.blocks[0].type).toBe("code");
     expect(doc.blocks.some((b) => b.type === "table")).toBe(false);
+  });
+
+  it("keeps GFM rows when cells contain thousands-separated $ amounts", () => {
+    const input = `| Details | Amount |
+| --- | --- |
+| **Sales (Revenue)** | $3,468,200$ |
+| **Cost of Sales** | $(2,550,000)$ |
+| **Gross Profit** | **$918,200$** |`;
+
+    for (const options of [{ mode: "strict" }, { mode: "smart" }]) {
+      const doc = parseDocument(input, options);
+      const table = firstTable(doc);
+      expect(table).toBeTruthy();
+      expect(table.header).toHaveLength(2);
+      expect(table.rows).toHaveLength(3);
+      expect(cellText(table.rows[0][0])).toContain("Sales (Revenue)");
+      expect(hasMath(table.rows[0][1], "3,468,200")).toBe(true);
+      expect(hasMath(table.rows[1][1], "(2,550,000)")).toBe(true);
+      expect(hasMath(table.rows[2][1], "918,200")).toBe(true);
+      expect(table.rows.flat().every((cell) => !cellText(cell).includes("||"))).toBe(true);
+    }
+  });
+
+  it("parses a statement of comprehensive income as a 3-column table", () => {
+    const input = `| Details | Notes / Workings | Amount ($\\text{R}$) |
+| --- | --- | --- |
+| **Sales (Revenue)** |  | $3,468,200$ |
+| **Cost of Sales** |  | $(2,550,000)$ |
+| **Gross Profit** |  | **$918,200$** |
+|  |  |  |
+| **Operating Expenses** |  | **$(1,275,850)$** |
+| Administrative Expenses |  | $(480,000)$ |
+| Selling and Distribution Expenses |  | $(395,000)$ |
+| Directors’ Fees |  | $(250,000)$ |
+| Audit Fee |  | $(85,000)$ |
+| Provision for Bad Debts Adjustment | $(\\text{R}14,250 - \\text{R}11,400)$ | $(2,850)$ |
+| Depreciation on Machinery | $10\\% \\times (\\text{R}850,000 - \\text{R}220,000)$ | $(63,000)$ |
+|  |  |  |
+| **Operating Loss (Loss from Operations)** |  | **$(357,650)$** |
+| **Finance Costs** | Interest on Debentures | $(60,000)$ |
+| **Loss Before Tax** |  | **$(417,650)$** |
+| **Taxation** | $27\\% \\text{ Tax Credit}$ | $112,765.50$ |
+| **Net Loss for the Year (Total Comprehensive Loss)** |  | **$(304,884.50)$** |`;
+
+    for (const options of [{ mode: "strict" }, { mode: "smart" }]) {
+      const doc = parseDocument(input, options);
+      const table = firstTable(doc);
+      expect(table).toBeTruthy();
+      expect(table.header).toHaveLength(3);
+      expect(table.rows).toHaveLength(17);
+      expect(cellText(table.rows[0][0])).toContain("Sales (Revenue)");
+      expect(hasMath(table.rows[0][2], "3,468,200")).toBe(true);
+      expect(hasMath(table.rows[1][2], "(2,550,000)")).toBe(true);
+      expect(cellText(table.rows[16][0])).toContain("Net Loss");
+      expect(hasMath(table.rows[16][2], "(304,884.50)")).toBe(true);
+      expect(table.rows.flat().every((cell) => !cellText(cell).includes("||"))).toBe(true);
+
+      const html = renderToFragmentHTML(doc);
+      expect(tbodyRowCount(html)).toBe(17);
+      expect(html).not.toContain("||");
+    }
   });
 });

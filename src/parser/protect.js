@@ -79,7 +79,7 @@ function replaceDollarMath(text, push) {
       const close = findClosingDollar(text, i + 1);
       if (close !== -1) {
         const body = text.slice(i + 1, close);
-        if (shouldConvertDollar(body, text, i, close)) {
+        if (shouldConvertDollar(body)) {
           out += push({ kind: "math", display: false, source: body.trim(), delimiter: "$" });
           i = close + 1;
           continue;
@@ -94,7 +94,8 @@ function replaceDollarMath(text, push) {
 
 function findClosingDollar(text, from) {
   for (let i = from; i < text.length; i += 1) {
-    if (text[i] === "\n" && text[i + 1] === "\n") return -1;
+    // Inline $...$ is single-line; leftover `$` must not swallow later GFM rows.
+    if (text[i] === "\n") return -1;
     if (text[i] === "$" && text[i - 1] !== "\\") return i;
   }
   return -1;
@@ -103,9 +104,15 @@ function findClosingDollar(text, from) {
 function shouldConvertDollar(body) {
   const trimmed = body.trim();
   if (!trimmed) return false;
+  if (/(?:^|\n)\s*\|/.test(trimmed) || /\|\s*(?:\n|$)/.test(trimmed)) return false;
   if (/[A-Za-z\\^_*=+/]/.test(trimmed)) return true;
-  if (/^\d+([.,]\d+)?$/.test(trimmed)) return true;
+  if (isAccountingNumber(trimmed)) return true;
   return false;
+}
+
+function isAccountingNumber(value) {
+  const compact = String(value ?? "").replace(/\s+/g, "");
+  return /^\(?-?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?\)?$/.test(compact);
 }
 
 function replaceBracketMath(text, push) {
