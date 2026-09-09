@@ -1,19 +1,26 @@
-import { formatErrorReport, formatFailedLatex, truncateSnippet, MAX_DOCUMENT_LENGTH } from "./error-log.js";
+import {
+  formatErrorReport,
+  formatFailedLatex,
+  truncateSnippet,
+  MAX_DOCUMENT_LENGTH,
+  MAX_NOTE_LENGTH,
+} from "./error-log.js";
 
 export function formsubmitReportUrl(email) {
   return `https://formsubmit.co/ajax/${encodeURIComponent(String(email || "").trim())}`;
 }
 
-export function summarizeReport(entries = [], issues = []) {
+export function summarizeReport(entries = [], issues = [], note) {
   const crashes = entries.filter((entry) => entry.kind === "exception").length;
   const math = entries.filter((entry) => entry.kind === "export-issues").length;
   const clicks = entries.filter((entry) => entry.kind === "user-report").length;
   const liveFailed = (issues || []).filter((issue) => issue.kind !== "warning").length;
   const liveWarnings = (issues || []).filter((issue) => issue.kind === "warning").length;
-  return `${crashes} crash(es), ${math} stored math snapshot(s), ${clicks} send-click(s), ${liveFailed} live failed, ${liveWarnings} live warning(s)`;
+  const noteBit = String(note ?? "").trim() ? "; user note included" : "";
+  return `${crashes} crash(es), ${math} stored math snapshot(s), ${clicks} send-click(s), ${liveFailed} live failed, ${liveWarnings} live warning(s)${noteBit}`;
 }
 
-export async function sendErrorReport(entries, { email, document = "", issues = [], fetchImpl } = {}) {
+export async function sendErrorReport(entries, { email, document = "", issues = [], note, fetchImpl } = {}) {
   const destination = String(email || "").trim();
   if (!destination) {
     throw new Error("Error reporting is not configured");
@@ -31,10 +38,11 @@ export async function sendErrorReport(entries, { email, document = "", issues = 
     body: JSON.stringify({
       _subject: "LaTeX to Word error report",
       name: "LaTeX to Word",
-      summary: summarizeReport(entries, issues),
+      summary: summarizeReport(entries, issues, note),
       failed_latex: formatFailedLatex(issues),
       document: truncateSnippet(document, MAX_DOCUMENT_LENGTH) || "(empty document)",
-      details: formatErrorReport(entries, { document, issues }),
+      user_note: truncateSnippet(note, MAX_NOTE_LENGTH) || "(none)",
+      details: formatErrorReport(entries, { document, issues, note }),
     }),
   });
   if (!response.ok) {

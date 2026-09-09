@@ -270,15 +270,30 @@
           <strong>LaTeX to Word</strong> (LaTeX2Word) turns pasted LaTeX, ChatGPT output, and Markdown into a
           Microsoft Word <code>.docx</code> with <strong>editable native equations</strong>, not
           screenshots. Paste any LaTeX content, or extract plain text from an image in your browser. PDFs are
-          not yet supported. Your content stays on your device; OCR runs locally and nothing from the editor is
-          uploaded.
+          not yet supported. Your content stays on your device; OCR runs locally. Nothing from the editor is
+          uploaded unless you click Send error report.
         </p>
-        <div class="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <button type="button" id="btn-send-error-report" class="btn self-start" disabled>Send error report</button>
-          <p class="text-xs leading-relaxed text-slate-500">
-            This is enabled only when the convert has a warning or error. The report includes your
-            pasted text and the equations that failed.
-          </p>
+        <div class="mt-6 flex flex-col gap-3">
+          <label
+            class="flex w-full max-w-3xl flex-col gap-1 text-xs font-medium uppercase tracking-wide text-slate-500 sm:text-sm sm:normal-case sm:tracking-normal"
+            for="error-report-note"
+          >
+            What looked wrong
+            <textarea
+              id="error-report-note"
+              rows="3"
+              maxlength="1000"
+              class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm font-normal normal-case tracking-normal text-slate-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              placeholder="What looked wrong? (optional)"
+            ></textarea>
+          </label>
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-start">
+            <button type="button" id="btn-send-error-report" class="btn self-start">Send error report</button>
+            <p id="error-report-help" class="text-xs leading-relaxed text-slate-500">
+              You can send a report even when Warnings and Failed are 0. Sending includes the pasted
+              document, any failed equations, and your note. Nothing is uploaded until you click Send.
+            </p>
+          </div>
         </div>
       </div>
     </footer>

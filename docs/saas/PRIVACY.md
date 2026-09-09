@@ -24,7 +24,7 @@ Optional `WEBHOOK_URL` secret can notify the owner when a new session starts.
 
 Do not add analytics that send paste contents.
 
-Crashes are stored **silently on the device**. Clients do not see that log. **Send error report** (user-clicked) emails the operator the **pasted document** and **failed/warning LaTeX**. Automatic error telemetry is **not** enabled. Conversion still runs locally until the user clicks send.
+Crashes are stored **silently on the device**. Clients do not see that log. **Send error report** is always available (opt-in click), even if the converter showed no warning; that click emails the operator the **pasted document**, **failed/warning LaTeX**, and an optional note. Automatic error telemetry is **not** enabled. Conversion still runs locally until the user clicks send.
 
 ## After SaaS accounts
 

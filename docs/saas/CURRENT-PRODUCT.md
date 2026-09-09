@@ -8,7 +8,7 @@ This is the app users get today. The paid product must **extend** this, not repl
 
 Paste ChatGPT / Markdown / LaTeX → live preview → **Download .docx** with **native editable Word equations (OMML)**, **Download .docx (plain text)** (same Word structure; math as readable text, not equations), or Download HTML.
 
-Conversion is not uploaded. No accounts. **Send error report** is available only when there is a warning, failed equation, or crash; that click emails the paste and failed LaTeX to the operator.
+Conversion is not uploaded. No accounts. **Send error report** is always available (opt-in click), not only when warnings exist; that click emails the paste and failed LaTeX to the operator.
 
 ## URLs and run
 
@@ -54,7 +54,7 @@ Never: LaTeX → HTML → Word. Never: equations as images.
 - Header: title **LaTeX to Word**, subtitle, privacy line, three-step how-it-works
 - Left pane: example dropdown, Smart/Strict mode, Paste / Clear, textarea (autosaved locally; preview updates automatically)
 - Right pane: Converted / Warnings / Failed stats (clickable), math issues list, Download .docx / Download again / Download HTML / Download .docx (plain text) / recent exports, Word-like preview
-- Footer: about copy plus **Send error report** (enabled only when there is a warning or error; does not show error details)
+- Footer: about copy plus **Send error report** (always available, opt-in click; does not show error details)
 - Shortcuts: Ctrl+Enter refresh preview; Ctrl+Shift+D download .docx; Ctrl+Shift+H download HTML; Ctrl+Shift+T download .docx with plain-text math
 
 ## Math delimiters
@@ -82,4 +82,4 @@ Smart mode (default): obvious undelimited LaTeX (`\frac`, `\sqrt`, `\bar{x}`, Gr
 - Do not add React/Vue/Svelte unless DECISIONS.md says so
 - Do not add a backend for conversion
 - Do not send paste content to analytics or an AI API
-- Error reports stay local unless the user clicks **Send error report** while a warning/error exists (that click includes the paste and failed math)
+- Error reports stay local unless the user clicks **Send error report** (that click includes the paste and failed math)

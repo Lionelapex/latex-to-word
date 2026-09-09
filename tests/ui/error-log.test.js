@@ -6,6 +6,7 @@ import {
   canSendErrorReport,
   createExceptionEntry,
   createExportIssuesEntry,
+  createUserReportEntry,
   fingerprint,
   formatErrorReport,
   formatFailedLatex,
@@ -60,7 +61,7 @@ describe("error log helpers", () => {
     expect(shouldLogExportIssues({ converted: 4, warnings: 0, failed: 0 }, [])).toBe(false);
     expect(
       canSendErrorReport({ stats: { converted: 4, warnings: 0, failed: 0 }, issues: [], entries: [] }),
-    ).toBe(false);
+    ).toBe(true);
     expect(
       canSendErrorReport({ stats: { converted: 4, warnings: 2, failed: 0 }, issues: [{ kind: "warning" }] }),
     ).toBe(true);
@@ -115,6 +116,30 @@ describe("error log helpers", () => {
       "\\bar{x}",
     );
   });
+
+  it("stores an optional user note on a send-click entry", () => {
+    const entry = createUserReportEntry({ note: "Table rows collapsed", mode: "smart", createdAt: 3 });
+    expect(entry.kind).toBe("user-report");
+    expect(entry.note).toBe("Table rows collapsed");
+    expect(entry.message).toBe("Table rows collapsed");
+    const blank = createUserReportEntry({ createdAt: 4 });
+    expect(blank.note).toBeNull();
+    expect(blank.message).toBe("User clicked Send error report");
+    expect(createUserReportEntry({ note: "   " })).toMatchObject({ note: null, message: "User clicked Send error report" });
+  });
+
+  it("includes userNote in the formatted report JSON", () => {
+    const entry = createUserReportEntry({ note: "Table rows collapsed", createdAt: 5 });
+    const report = JSON.parse(
+      formatErrorReport([entry], {
+        document: "paste",
+        issues: [],
+        note: "Table rows collapsed",
+      }),
+    );
+    expect(report.userNote).toBe("Table rows collapsed");
+    expect(report.entries[0].note).toBe("Table rows collapsed");
+  });
 });
 
 describe("send error report", () => {
@@ -148,8 +173,32 @@ describe("send error report", () => {
     expect(body.summary).toBe(summarizeReport(entries, issues));
     expect(body.failed_latex).toContain("\\unknown{x}");
     expect(body.document).toBe(document);
+    expect(body.user_note).toBe("(none)");
     expect(body.details).toContain("Could not build the Word document.");
     expect(JSON.parse(body.details).document).toBe(document);
+    expect(JSON.parse(body.details).userNote).toBeNull();
+  });
+
+  it("posts the optional user note as user_note", async () => {
+    const calls = [];
+    const fetchImpl = async (url, options) => {
+      calls.push({ url, options });
+      return {
+        ok: true,
+        json: async () => ({ success: true }),
+      };
+    };
+    await sendErrorReport([], {
+      email: "owner@example.com",
+      document: "paste",
+      issues: [],
+      note: "Table rows collapsed",
+      fetchImpl,
+    });
+    const body = JSON.parse(calls[0].options.body);
+    expect(body.user_note).toBe("Table rows collapsed");
+    expect(body.summary).toContain("user note included");
+    expect(JSON.parse(body.details).userNote).toBe("Table rows collapsed");
   });
 
   it("refuses to send when no inbox is configured", async () => {

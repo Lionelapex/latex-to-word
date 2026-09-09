@@ -25,6 +25,16 @@ import { listMathIssues } from "./src/model/document-model.js";
 import { exportFilename } from "./src/utils/filename.js";
 import { DEFAULT_SAMPLE_KEY, SAMPLES } from "./src/samples/index.js";
 import { startPresence } from "./src/analytics/presence.js";
+import { errorLog } from "./src/ui/error-log.js";
+import {
+  canSendErrorReport,
+  createExceptionEntry,
+  createExportIssuesEntry,
+  createUserReportEntry,
+  shouldLogExportIssues,
+} from "./src/utils/error-log.js";
+import { sendErrorReport } from "./src/utils/send-error-report.js";
+import { getErrorReportEmail } from "./src/config/error-report.js";
 
 const input = document.getElementById("input");
 const preview = document.getElementById("preview");
@@ -38,6 +48,9 @@ const redownloadButton = document.getElementById("btn-redownload");
 const exportHistorySelect = document.getElementById("export-history");
 const imageOcrButton = document.getElementById("btn-image-ocr");
 const imageInput = document.getElementById("image-input");
+const sendErrorReportButton = document.getElementById("btn-send-error-report");
+const errorReportNote = document.getElementById("error-report-note");
+const errorReportHelp = document.getElementById("error-report-help");
 const ocrPanel = createOcrResultPanel({
   panel: document.getElementById("ocr-panel"),
   titleEl: document.getElementById("ocr-panel-title"),
@@ -55,6 +68,35 @@ const ocrPanel = createOcrResultPanel({
 let currentDoc = null;
 let activeIssueId = null;
 let ocrBusy = false;
+let sendingReport = false;
+
+function currentIssues() {
+  return currentDoc ? listMathIssues(currentDoc) : [];
+}
+
+function recordException(stage, error) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  if (!String(message).trim()) return;
+  errorLog.record(createExceptionEntry({ stage, error, mode: modeSelect?.value })).catch(() => {});
+}
+
+function updateSendReportButton() {
+  if (!sendErrorReportButton) return;
+  const email = getErrorReportEmail();
+  const allowed = canSendErrorReport({
+    stats: currentDoc?.stats ?? null,
+    issues: currentIssues(),
+    entries: errorLog.list(),
+  });
+  sendErrorReportButton.disabled = sendingReport || !email || !allowed;
+  if (!errorReportHelp) return;
+  if (!email) {
+    errorReportHelp.textContent = "Error reporting is not configured.";
+  } else {
+    errorReportHelp.textContent =
+      "You can send a report even when Warnings and Failed are 0. Sending includes the pasted document, any failed equations, and your note. Nothing is uploaded until you click Send.";
+  }
+}
 
 const savedDraft = loadDraft();
 if (savedDraft !== null && savedDraft.length > 0) {
@@ -64,12 +106,20 @@ if (savedDraft !== null && savedDraft.length > 0) {
 }
 
 function convert() {
-  hideNotice();
+  if (!notice.classList.contains("notice-success")) {
+    hideNotice();
+  }
   activeIssueId = null;
-  currentDoc = parseDocument(input.value, { mode: modeSelect.value });
-  renderPreview(preview, currentDoc);
-  updateStats(currentDoc.stats);
-  renderIssuesPanel();
+  try {
+    currentDoc = parseDocument(input.value, { mode: modeSelect.value });
+    renderPreview(preview, currentDoc);
+    updateStats(currentDoc.stats);
+    renderIssuesPanel();
+  } catch (error) {
+    recordException("convert", error);
+    showNotice(error.message || "Could not convert the document.");
+  }
+  updateSendReportButton();
 }
 
 const autoConvert = createAutoConvert(convert);
@@ -228,6 +278,20 @@ async function rememberExport(type, blob, filename) {
   await updateExportControls();
 }
 
+function recordExportIssuesIfNeeded() {
+  if (!currentDoc || !shouldLogExportIssues(currentDoc.stats, currentIssues())) return;
+  errorLog
+    .record(
+      createExportIssuesEntry({
+        mode: modeSelect?.value,
+        stats: currentDoc.stats,
+        issues: currentIssues(),
+        stage: "export",
+      }),
+    )
+    .catch(() => {});
+}
+
 async function downloadDocx() {
   if (!currentDoc) flushAutoConvert();
   const blob = await documentToDocxBlob(currentDoc);
@@ -235,6 +299,7 @@ async function downloadDocx() {
   downloadBlob(blob, name);
   await rememberExport("docx", blob, name);
   showNotice(`Downloaded ${name}`, false);
+  recordExportIssuesIfNeeded();
 }
 
 async function downloadHtml() {
@@ -245,6 +310,7 @@ async function downloadHtml() {
   downloadBlob(blob, name);
   await rememberExport("html", blob, name);
   showNotice(`Downloaded ${name}`, false);
+  recordExportIssuesIfNeeded();
 }
 
 function redownloadSelected(id = null) {
@@ -348,14 +414,60 @@ if (sampleSelect) {
 
 docxButton?.addEventListener("click", () => {
   downloadDocx().catch((error) => {
+    recordException("docx", error);
     showNotice(error.message || "Could not build the Word document.");
   });
 });
 
 document.getElementById("btn-html")?.addEventListener("click", () => {
   downloadHtml().catch((error) => {
+    recordException("html", error);
     showNotice(error.message || "Could not build the HTML export.");
   });
+});
+
+sendErrorReportButton?.addEventListener("click", async () => {
+  if (sendingReport) return;
+  const confirmed = window.confirm(
+    "This sends your pasted document to the developer so they can reproduce the problem. Continue?",
+  );
+  if (!confirmed) return;
+
+  sendingReport = true;
+  sendErrorReportButton.disabled = true;
+  sendErrorReportButton.textContent = "Sending…";
+
+  const note = errorReportNote?.value ?? "";
+  try {
+    await errorLog.ready;
+    await sendErrorReport(errorLog.list(), {
+      email: getErrorReportEmail(),
+      document: input.value,
+      issues: currentIssues(),
+      note,
+    });
+    await errorLog.record(createUserReportEntry({ mode: modeSelect?.value, note }));
+    showNotice("Error report sent. Thank you.", false);
+    if (errorReportNote) errorReportNote.value = "";
+  } catch (error) {
+    showNotice(error.message || "Could not send the error report.");
+    sendingReport = false;
+    sendErrorReportButton.disabled = false;
+  } finally {
+    sendingReport = false;
+    sendErrorReportButton.textContent = "Send error report";
+    updateSendReportButton();
+  }
+});
+
+window.addEventListener("error", (event) => {
+  if (sendingReport) return;
+  recordException("runtime", event.error || event.message);
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  if (sendingReport) return;
+  recordException("runtime", event.reason);
 });
 
 redownloadButton?.addEventListener("click", () => redownloadSelected());
@@ -405,4 +517,5 @@ function downloadBlob(blob, filename) {
 
 convert();
 updateExportControls();
+errorLog.ready.then(() => updateSendReportButton()).catch(() => {});
 startPresence();

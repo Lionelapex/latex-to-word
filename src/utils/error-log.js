@@ -4,6 +4,7 @@ export const MAX_ISSUE_SNIPPETS = 25;
 export const MAX_ISSUE_SOURCE_LENGTH = 20000;
 export const MAX_DOCUMENT_LENGTH = 100000;
 export const MAX_STACK_LENGTH = 2000;
+export const MAX_NOTE_LENGTH = 1000;
 export const APP_VERSION = "0.1.0";
 
 export function truncateSnippet(text, max = MAX_SNIPPET_LENGTH) {
@@ -88,9 +89,8 @@ export function shouldLogExportIssues(stats, issues = []) {
   return issues.length > 0;
 }
 
-export function canSendErrorReport({ stats = null, issues = [], entries = [] } = {}) {
-  if (shouldLogExportIssues(stats, issues)) return true;
-  return (entries || []).some((entry) => entry.kind === "exception");
+export function canSendErrorReport(_options = {}) {
+  return true;
 }
 
 export function createExportIssuesEntry({
@@ -133,16 +133,20 @@ export function createExportIssuesEntry({
 
 export function createUserReportEntry({
   mode = null,
+  note,
   createdAt = Date.now(),
   userAgent,
   appVersion = APP_VERSION,
 } = {}) {
+  const trimmedNote = String(note ?? "").trim();
+  const storedNote = truncateSnippet(trimmedNote, MAX_NOTE_LENGTH) || null;
   const entry = {
     id: newId(createdAt),
     createdAt,
     kind: "user-report",
     stage: "report",
-    message: "User clicked Send error report",
+    message: storedNote || "User clicked Send error report",
+    note: storedNote,
     stack: null,
     mode: mode || null,
     stats: null,
@@ -170,12 +174,13 @@ export function addErrorEntry(log, entry, max = MAX_ERROR_LOG) {
   return [{ ...entry, fingerprint: fp, count: entry.count || 1 }, ...(log || [])].slice(0, max);
 }
 
-export function formatErrorReport(entries, { document = "", issues = [] } = {}) {
+export function formatErrorReport(entries, { document = "", issues = [], note } = {}) {
   return JSON.stringify(
     {
       product: "LaTeX to Word",
       generatedAt: new Date().toISOString(),
       note: "User clicked Send error report. Includes the pasted document and failed/warning LaTeX.",
+      userNote: truncateSnippet(note, MAX_NOTE_LENGTH) || null,
       appVersion: APP_VERSION,
       document: truncateSnippet(document, MAX_DOCUMENT_LENGTH),
       failedMath: (issues || []).map((issue) => sanitizeIssue(issue, { sourceMax: MAX_ISSUE_SOURCE_LENGTH })),
@@ -191,6 +196,7 @@ export function formatErrorReport(entries, { document = "", issues = [] } = {}) 
         count: entry.count || 1,
         userAgent: entry.userAgent,
         appVersion: entry.appVersion,
+        ...(entry.note ? { note: entry.note } : {}),
       })),
     },
     null,
