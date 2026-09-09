@@ -35,6 +35,9 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_PRESENCE_API_URL: ${{ secrets.VITE_PRESENCE_API_URL }}
+          VITE_ERROR_REPORT_EMAIL: ${{ secrets.VITE_ERROR_REPORT_EMAIL }}
         run: npm run build
 
       - name: Setup Pages

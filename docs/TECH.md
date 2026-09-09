@@ -8,7 +8,7 @@ Native OMML equations are feasible in the browser. The conversion spine is a cus
 
 ## Architecture
 
-The document model is the source of truth. Preview, clipboard, and DOCX are independent renderers.
+The document model is the source of truth. Preview and DOCX are independent renderers.
 
 ```
 Raw paste
@@ -18,8 +18,7 @@ Raw paste
   → LaTeX parser (Math AST, or a failed node that keeps the source)
   → Document Model
        → HTML/MathML preview
-       → OMML → DOCX
-       → clipboard HTML + plain text
+       → OMML → DOCX, or the same Word structure with math as Unicode text (+ HTML file download)
 ```
 
 Never convert LaTeX → HTML → Word. Never export equations as images.
@@ -53,8 +52,8 @@ The app is entirely client-side. User content does not leave the browser. The UI
 
 ## Failed LaTeX
 
-Unknown or malformed expressions become `failed` nodes that preserve the original source. They are never deleted. Status counts: Converted / Warnings / Failed.
+Malformed expressions (unmatched braces, incomplete `\frac`) become `failed` nodes that preserve the original source. Unknown math commands are **not** failed: they render as named operators/functions so the rest of the equation still converts. Status counts: Converted / Warnings / Failed.
 
 ## Acceptance target
 
-Desktop Microsoft Word. Generated equations must be editable OMML (`m:oMath` / `m:oMathPara`), not images. Clipboard HTML+MathML is best-effort; Download .docx is authoritative.
+Desktop Microsoft Word. Generated equations must be editable OMML (`m:oMath` / `m:oMathPara`), not images. **Download .docx** is the export path into Word.

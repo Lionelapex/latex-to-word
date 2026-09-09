@@ -5,6 +5,8 @@ Convert ChatGPT, Markdown, and LaTeX into a Word document with **editable equati
 **Live demo:** [https://lionelapex.github.io/latex-to-word/](https://lionelapex.github.io/latex-to-word/)  
 **Repository:** [https://github.com/Lionelapex/latex-to-word](https://github.com/Lionelapex/latex-to-word)
 
+Paste any LaTeX content. The preview updates automatically, then download a `.docx` and open it in Microsoft Word. Equations stay editable in Word. Images and PDFs are not yet supported.
+
 Everything runs in your browser. Your content is never uploaded to a server.
 
 ## Quick start
@@ -94,6 +96,27 @@ The live site is the Vite **`dist/`** build, deployed by GitHub Actions — not 
 The app is built with `base: '/latex-to-word/'` so assets load at  
 `https://lionelapex.github.io/latex-to-word/`.
 
+## Stack
+
+Vanilla JavaScript converter with **Tailwind CSS** for the app UI (Vite + `docx` + Vitest). Preview equations use native MathML; Word export uses OMML.
+
+## Windows troubleshooting
+
+PowerShell may block `npm` because it runs `npm.ps1` when script execution is disabled. Use one of these instead:
+
+- **Quick fix:** `npm.cmd run dev` (and `npm.cmd install` for install)
+- **Helper script:** `.\run-dev.bat` (double-click or run from cmd/PowerShell)
+- **Optional (current user only):** `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+`run-dev.ps1` calls `npm.cmd` through `cmd.exe` for the same reason; if issues persist, use `run-dev.bat`.
+
+## Documentation
+
+- **[docs/saas/README.md](docs/saas/README.md)** — living docs for the **current app** and the **planned paid subscription** product (start here in a new Cursor chat)
+- [User Guide](docs/USER_GUIDE.md) — copying from ChatGPT, paste methods, export options, FAQ
+- [Developer Guide](docs/DEVELOPER.md) — architecture, modules, tests, extending the parser
+- [docs/TECH.md](docs/TECH.md) — converter architecture decision record
+
 ## Privacy
 
 No accounts, no API keys, no backend. Parsing, preview, and `.docx` generation happen entirely in your browser. Content you paste never leaves your device.
@@ -101,9 +124,3 @@ No accounts, no API keys, no backend. Parsing, preview, and `.docx` generation h
 ## License
 
 MIT — see [LICENSE](LICENSE) (to be added; project dependencies use permissive licenses).
-
-## Documentation
-
-- [User Guide](docs/USER_GUIDE.md) — copying from ChatGPT, paste methods, export options, FAQ
-- [Developer Guide](docs/DEVELOPER.md) — architecture, modules, tests, extending the parser
-- [TECH.md](docs/TECH.md) — MVP architecture decision record

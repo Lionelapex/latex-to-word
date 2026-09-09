@@ -1,3 +1,5 @@
+import { knownMathCommands } from "./latex-parser.js";
+
 export const PLACEHOLDER_START = "\uE000";
 export const PLACEHOLDER_END = "\uE001";
 
@@ -7,89 +9,7 @@ export function makePlaceholder(index) {
 
 export const PLACEHOLDER_RE = /\uE000(\d+)\uE001/g;
 
-export const KNOWN_MATH_COMMANDS = new Set([
-  "frac",
-  "dfrac",
-  "tfrac",
-  "sqrt",
-  "sum",
-  "prod",
-  "int",
-  "iint",
-  "iiint",
-  "oint",
-  "lim",
-  "bar",
-  "hat",
-  "vec",
-  "tilde",
-  "dot",
-  "ddot",
-  "overline",
-  "text",
-  "mathrm",
-  "operatorname",
-  "left",
-  "right",
-  "begin",
-  "end",
-  "sin",
-  "cos",
-  "tan",
-  "log",
-  "ln",
-  "exp",
-  "alpha",
-  "beta",
-  "gamma",
-  "delta",
-  "epsilon",
-  "zeta",
-  "eta",
-  "theta",
-  "iota",
-  "kappa",
-  "lambda",
-  "mu",
-  "nu",
-  "xi",
-  "pi",
-  "rho",
-  "sigma",
-  "tau",
-  "upsilon",
-  "phi",
-  "chi",
-  "psi",
-  "omega",
-  "Gamma",
-  "Delta",
-  "Theta",
-  "Lambda",
-  "Xi",
-  "Pi",
-  "Sigma",
-  "Phi",
-  "Psi",
-  "Omega",
-  "neq",
-  "leq",
-  "geq",
-  "approx",
-  "sim",
-  "times",
-  "cdot",
-  "pm",
-  "in",
-  "subset",
-  "subseteq",
-  "cup",
-  "cap",
-  "infty",
-  "to",
-  "partial",
-  "cdot",
-]);
+export const KNOWN_MATH_COMMANDS = knownMathCommands();
 
 export function isMathLike(source) {
   const text = String(source ?? "");
@@ -122,7 +42,7 @@ export function scoreMathSnippet(snippet) {
       else if (name[0] === name[0].toLowerCase() && name.length <= 7) score += 0.28;
       else score += 0.2;
     } else {
-      score -= 0.15;
+      score += 0.22;
     }
   }
   if (/\{[^{}]*\}/.test(text)) score += 0.1;

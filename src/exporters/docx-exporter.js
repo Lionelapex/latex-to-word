@@ -14,6 +14,7 @@ import {
   convertInchesToTwip,
 } from "docx";
 import { astToInlineMath } from "../renderers/omml-renderer.js";
+import { mathToPlainText } from "../renderers/plain-text-renderer.js";
 
 const HEADING = {
   1: HeadingLevel.HEADING_1,
@@ -24,20 +25,21 @@ const HEADING = {
   6: HeadingLevel.HEADING_6,
 };
 
-export async function documentToDocxBlob(documentModel) {
-  const doc = buildDocument(documentModel);
+export async function documentToDocxBlob(documentModel, options = {}) {
+  const doc = buildDocument(documentModel, options);
   return Packer.toBlob(doc);
 }
 
-export async function documentToDocxBuffer(documentModel) {
-  const doc = buildDocument(documentModel);
+export async function documentToDocxBuffer(documentModel, options = {}) {
+  const doc = buildDocument(documentModel, options);
   return Packer.toBuffer(doc);
 }
 
-export function buildDocument(documentModel) {
+export function buildDocument(documentModel, options = {}) {
+  const mathMode = options.mathMode === "plain" ? "plain" : "omml";
   const children = [];
   for (const block of documentModel.blocks || []) {
-    children.push(...blockToDocx(block));
+    children.push(...blockToDocx(block, mathMode));
   }
   if (!children.length) {
     children.push(new Paragraph({ children: [new TextRun("")] }));
@@ -93,30 +95,30 @@ export function buildDocument(documentModel) {
   });
 }
 
-function blockToDocx(block, listContext = null) {
+function blockToDocx(block, mathMode = "omml") {
   if (block.type === "heading") {
     return [
       new Paragraph({
         heading: HEADING[block.level] || HeadingLevel.HEADING_1,
         spacing: { after: 120 },
-        children: inlinesToDocx(block.inlines || []),
+        children: inlinesToDocx(block.inlines || [], {}, mathMode),
       }),
     ];
   }
   if (block.type === "paragraph") {
-    return paragraphInlinesToDocx(block.inlines || []);
+    return paragraphInlinesToDocx(block.inlines || [], mathMode);
   }
   if (block.type === "math") {
-    return [displayMathParagraph(block.ast)];
+    return [displayMathParagraph(block.ast, mathMode, block.source)];
   }
   if (block.type === "list") {
-    return listToDocx(block, 0);
+    return listToDocx(block, 0, mathMode);
   }
   if (block.type === "table") {
-    return [tableToDocx(block)];
+    return [tableToDocx(block, mathMode)];
   }
   if (block.type === "quote") {
-    return quoteToDocx(block);
+    return quoteToDocx(block, mathMode);
   }
   if (block.type === "code") {
     const lines = String(block.value || "").split("\n");
@@ -139,15 +141,23 @@ function blockToDocx(block, listContext = null) {
   return [];
 }
 
-function displayMathParagraph(ast) {
+function mathToDocx(ast, mathMode, source = "") {
+  if (mathMode === "plain") {
+    const text = mathToPlainText(ast) || source || " ";
+    return [new TextRun({ text })];
+  }
+  return [astToInlineMath(ast)];
+}
+
+function displayMathParagraph(ast, mathMode = "omml", source = "") {
   return new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { before: 200, after: 200 },
-    children: [astToInlineMath(ast)],
+    children: mathToDocx(ast, mathMode, source),
   });
 }
 
-function paragraphInlinesToDocx(inlines) {
+function paragraphInlinesToDocx(inlines, mathMode = "omml") {
   const groups = [];
   let current = [];
   const flush = () => {
@@ -155,7 +165,7 @@ function paragraphInlinesToDocx(inlines) {
     groups.push(
       new Paragraph({
         spacing: { after: 200 },
-        children: inlinesToDocx(current),
+        children: inlinesToDocx(current, {}, mathMode),
       }),
     );
     current = [];
@@ -163,7 +173,7 @@ function paragraphInlinesToDocx(inlines) {
   for (const node of inlines || []) {
     if (node.type === "math" && node.display) {
       flush();
-      groups.push(displayMathParagraph(node.ast));
+      groups.push(displayMathParagraph(node.ast, mathMode, node.source));
     } else {
       current.push(node);
     }
@@ -172,7 +182,7 @@ function paragraphInlinesToDocx(inlines) {
   return groups.length ? groups : [new Paragraph({ children: [new TextRun("")] })];
 }
 
-function quoteToDocx(block) {
+function quoteToDocx(block, mathMode = "omml") {
   const out = [];
   for (const child of block.blocks || []) {
     if (child.type === "paragraph") {
@@ -180,35 +190,35 @@ function quoteToDocx(block) {
         new Paragraph({
           indent: { left: convertInchesToTwip(0.5) },
           border: { left: { style: BorderStyle.SINGLE, size: 12, color: "999999", space: 8 } },
-          children: inlinesToDocx(child.inlines || []),
+          children: inlinesToDocx(child.inlines || [], {}, mathMode),
         }),
       );
     } else {
-      out.push(...blockToDocx(child));
+      out.push(...blockToDocx(child, mathMode));
     }
   }
   return out;
 }
 
-function listToDocx(block, level) {
+function listToDocx(block, level, mathMode = "omml") {
   const reference = block.ordered ? "math-to-word-numbers" : "math-to-word-bullets";
   const out = [];
   for (const item of block.items || []) {
     out.push(
       new Paragraph({
         numbering: { reference, level: Math.min(level, 3) },
-        children: inlinesToDocx(item.inlines || []),
+        children: inlinesToDocx(item.inlines || [], {}, mathMode),
       }),
     );
     for (const child of item.blocks || []) {
-      if (child.type === "list") out.push(...listToDocx(child, level + 1));
-      else out.push(...blockToDocx(child));
+      if (child.type === "list") out.push(...listToDocx(child, level + 1, mathMode));
+      else out.push(...blockToDocx(child, mathMode));
     }
   }
   return out;
 }
 
-function tableToDocx(block) {
+function tableToDocx(block, mathMode = "omml") {
   const columnCount = Math.max(block.header?.length || 0, ...(block.rows || []).map((row) => row.length));
   const width = Math.floor(9000 / Math.max(columnCount, 1));
   const border = { style: BorderStyle.SINGLE, size: 4, color: "BFBFBF" };
@@ -225,7 +235,7 @@ function tableToDocx(block) {
           children: [
             new Paragraph({
               alignment: align(block.aligns?.[i]),
-              children: inlinesToDocx(cell.inlines || []),
+              children: inlinesToDocx(cell.inlines || [], {}, mathMode),
             }),
           ],
         }),
@@ -243,7 +253,7 @@ function tableToDocx(block) {
               children: [
                 new Paragraph({
                   alignment: align(block.aligns?.[i]),
-                  children: inlinesToDocx(cell.inlines || []),
+                  children: inlinesToDocx(cell.inlines || [], {}, mathMode),
                 }),
               ],
             }),
@@ -263,7 +273,7 @@ function align(value) {
   return AlignmentType.LEFT;
 }
 
-function inlinesToDocx(inlines, marks = {}) {
+function inlinesToDocx(inlines, marks = {}, mathMode = "omml") {
   const out = [];
   for (const node of inlines || []) {
     if (node.type === "text") {
@@ -278,11 +288,11 @@ function inlinesToDocx(inlines, marks = {}) {
       continue;
     }
     if (node.type === "strong") {
-      out.push(...inlinesToDocx(node.children || [], { ...marks, bold: true }));
+      out.push(...inlinesToDocx(node.children || [], { ...marks, bold: true }, mathMode));
       continue;
     }
     if (node.type === "emphasis") {
-      out.push(...inlinesToDocx(node.children || [], { ...marks, italic: true }));
+      out.push(...inlinesToDocx(node.children || [], { ...marks, italic: true }, mathMode));
       continue;
     }
     if (node.type === "code") {
@@ -290,7 +300,7 @@ function inlinesToDocx(inlines, marks = {}) {
       continue;
     }
     if (node.type === "math") {
-      out.push(astToInlineMath(node.ast));
+      out.push(...mathToDocx(node.ast, mathMode, node.source));
     }
   }
   return out.length ? out : [new TextRun("")];

@@ -70,6 +70,15 @@ describe("LaTeX Math AST", () => {
     expect(JSON.stringify(ast)).toContain("≠");
   });
 
+  it("parses \\implies and related arrows", () => {
+    const ast = parseLatex("u(x) = x^{2} + 1 \\implies u'(x) = 2x");
+    expect(ast.type).not.toBe("failed");
+    expect(containsFailed(ast)).toBe(false);
+    expect(JSON.stringify(ast)).toContain("⟹");
+    expect(containsFailed(parseLatex("A \\iff B"))).toBe(false);
+    expect(containsFailed(parseLatex("B \\impliedby A"))).toBe(false);
+  });
+
   it("parses the sample mean formula", () => {
     const ast = parseLatex("\\bar{x} = \\frac{1}{n}\\sum_{i=1}^{n}x_i");
     expect(types(ast)).toEqual(expect.arrayContaining(["accent", "fraction", "nary"]));
@@ -96,15 +105,25 @@ describe("LaTeX Math AST", () => {
 
     const unmatched = parseLatex("{a+b");
     expect(unmatched.type).toBe("failed");
-
-    const unknown = parseLatex("x + \\notacommand{y}");
-    expect(containsFailed(unknown)).toBe(true);
-    expect(JSON.stringify(unknown)).toContain("\\notacommand");
   });
 
-  it("does not delete unknown commands", () => {
-    const ast = parseLatex("\\unknown{keep-me}");
-    expect(ast.type === "failed" || containsFailed(ast)).toBe(true);
-    expect(JSON.stringify(ast)).toContain("keep-me");
+  it("renders unknown commands instead of failing the expression", () => {
+    const unknown = parseLatex("x + \\notacommand{y}");
+    expect(containsFailed(unknown)).toBe(false);
+    expect(JSON.stringify(unknown)).toContain("notacommand");
+    expect(JSON.stringify(unknown)).toContain("y");
+
+    const kept = parseLatex("\\unknown{keep-me}");
+    expect(containsFailed(kept)).toBe(false);
+    expect(JSON.stringify(kept)).toContain("unknown");
+    expect(JSON.stringify(kept)).toContain("\"k\"");
+  });
+
+  it("unwraps font commands and common AMS symbols", () => {
+    const real = parseLatex("\\mathbb{R}");
+    expect(containsFailed(real)).toBe(false);
+    expect(JSON.stringify(real)).toContain("R");
+    expect(containsFailed(parseLatex("a \\therefore b"))).toBe(false);
+    expect(containsFailed(parseLatex("\\mathbb{E}[X]"))).toBe(false);
   });
 });

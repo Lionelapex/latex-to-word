@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseDocument } from "../../src/parser/index.js";
 import { renderToFragmentHTML } from "../../src/renderers/html-renderer.js";
-import { documentToPlainText } from "../../src/exporters/clipboard-exporter.js";
 
 describe("lists and GFM tables", () => {
   it("parses unicode bullets from ChatGPT paste", () => {
@@ -30,11 +29,12 @@ describe("lists and GFM tables", () => {
     expect(table.rows[0][1].inlines.some((n) => n.type === "math")).toBe(true);
   });
 
-  it("renders lists and tables to clipboard HTML", () => {
+  it("parses lists and tables for export", () => {
     const doc = parseDocument("- item\n\n| A | B |\n| --- | --- |\n| 1 | 2 |", { mode: "strict" });
     const html = renderToFragmentHTML(doc);
     expect(html).toContain("<ul>");
     expect(html).toContain("<table");
-    expect(documentToPlainText(doc)).toContain("- item");
+    expect(doc.blocks.some((block) => block.type === "list")).toBe(true);
+    expect(doc.blocks.some((block) => block.type === "table")).toBe(true);
   });
 });
