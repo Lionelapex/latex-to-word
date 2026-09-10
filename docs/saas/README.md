@@ -17,11 +17,12 @@ Use it when:
 | 3 | [ARCHITECTURE.md](ARCHITECTURE.md) | Accounts, Stripe, entitlements; conversion stays local |
 | 4 | [AUTH.md](AUTH.md) | Supabase Auth setup, env vars, redirect URLs, sign-in flow |
 | 5 | [UI-LAYOUT.md](UI-LAYOUT.md) | How the paid UI should look (layout, not implementation) |
-| 6 | [PRICING.md](PRICING.md) | Draft plans (not live) |
+| 6 | [PRICING.md](PRICING.md) | Draft plans + anonymous 3-export trial (live) |
 | 7 | [PRIVACY.md](PRIVACY.md) | What we can claim about local processing |
-| 8 | [ROADMAP.md](ROADMAP.md) | Build order |
-| 9 | [DECISIONS.md](DECISIONS.md) | Dated decisions (append, do not rewrite history) |
-| 10 | [CHANGELOG.md](CHANGELOG.md) | What we shipped in docs/product |
+| 8 | [SEO.md](SEO.md) | Meta, FAQ, robots/sitemap for latextodocx.com |
+| 9 | [ROADMAP.md](ROADMAP.md) | Build order |
+| 10 | [DECISIONS.md](DECISIONS.md) | Dated decisions (append, do not rewrite history) |
+| 11 | [CHANGELOG.md](CHANGELOG.md) | What we shipped in docs/product |
 
 Existing converter technical notes (free app): [../TECH.md](../TECH.md).
 

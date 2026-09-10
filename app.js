@@ -36,6 +36,8 @@ import {
 import { sendErrorReport } from "./src/utils/send-error-report.js";
 import { getErrorReportEmail } from "./src/config/error-report.js";
 import {
+  ensureProfile,
+  getProfile,
   getSession,
   isAuthConfigured,
   onAuthStateChange,
@@ -44,6 +46,7 @@ import {
   signOut,
   signUp,
 } from "./src/auth/supabase-client.js";
+import { ANON_EXPORT_LIMIT, createTrialGate } from "./src/ui/trial-gate.js";
 
 const input = document.getElementById("input");
 const preview = document.getElementById("preview");
@@ -53,6 +56,7 @@ const mathIssuesEl = document.getElementById("math-issues");
 const modeSelect = document.getElementById("mode-select");
 const sampleSelect = document.getElementById("sample-select");
 const docxButton = document.getElementById("btn-docx");
+const docxPlainButton = document.getElementById("btn-docx-plain");
 const redownloadButton = document.getElementById("btn-redownload");
 const exportHistorySelect = document.getElementById("export-history");
 const imageOcrButton = document.getElementById("btn-image-ocr");
@@ -60,6 +64,10 @@ const imageInput = document.getElementById("image-input");
 const sendErrorReportButton = document.getElementById("btn-send-error-report");
 const errorReportNote = document.getElementById("error-report-note");
 const errorReportHelp = document.getElementById("error-report-help");
+const trialBanner = document.getElementById("trial-banner");
+const trialBannerText = document.getElementById("trial-banner-text");
+const trialBannerSignIn = document.getElementById("trial-banner-signin");
+const trialGate = createTrialGate();
 const ocrPanel = createOcrResultPanel({
   panel: document.getElementById("ocr-panel"),
   titleEl: document.getElementById("ocr-panel-title"),
@@ -301,34 +309,107 @@ function recordExportIssuesIfNeeded() {
     .catch(() => {});
 }
 
+function formatTrialRemaining(remaining) {
+  if (!Number.isFinite(remaining)) return "";
+  if (remaining <= 0) return "No free downloads left — sign in to keep exporting.";
+  const noun = remaining === 1 ? "download" : "downloads";
+  return `${remaining} free ${noun} left`;
+}
+
+function updateTrialUi() {
+  const signedIn = trialGate.isSignedIn();
+  const remaining = trialGate.getRemaining();
+  if (trialBanner) {
+    if (signedIn) {
+      trialBanner.hidden = true;
+    } else {
+      trialBanner.hidden = false;
+      trialBanner.dataset.state = remaining <= 0 ? "exhausted" : "ok";
+      if (trialBannerText) {
+        trialBannerText.textContent =
+          remaining <= 0
+            ? `You've used your ${ANON_EXPORT_LIMIT} free downloads. Sign in for unlimited exports (free plan). Preview still works.`
+            : `${formatTrialRemaining(remaining)} without signing in. Preview is always free.`;
+      }
+    }
+  }
+  if (trialBannerSignIn) {
+    trialBannerSignIn.classList.toggle("hidden", signedIn);
+  }
+}
+
+function requireExportEntitlement({ promptSignIn = true } = {}) {
+  if (trialGate.canExport()) return true;
+  updateTrialUi();
+  showNotice(
+    `Free trial used (${ANON_EXPORT_LIMIT} downloads). Sign in to download .docx or HTML — conversion stays in your browser.`,
+    true,
+  );
+  if (promptSignIn) openAuthDialog("signin");
+  return false;
+}
+
+function afterSuccessfulExport() {
+  const result = trialGate.consumeExport();
+  updateTrialUi();
+  return result;
+}
+
 async function downloadDocx() {
+  if (!requireExportEntitlement()) return;
   if (!currentDoc) flushAutoConvert();
   const blob = await documentToDocxBlob(currentDoc);
   const name = exportName("docx");
   downloadBlob(blob, name);
+  afterSuccessfulExport();
   await rememberExport("docx", blob, name);
-  showNotice(`Downloaded ${name}`, false);
+  const rem = formatTrialRemaining(trialGate.getRemaining());
+  showNotice(rem ? `Downloaded ${name}. ${rem}.` : `Downloaded ${name}`, false);
+  recordExportIssuesIfNeeded();
+}
+
+async function downloadDocxPlain() {
+  if (!requireExportEntitlement()) return;
+  if (!currentDoc) flushAutoConvert();
+  const blob = await documentToDocxBlob(currentDoc, { mathMode: "plain" });
+  const name = exportFilename(currentDoc, "docx", {
+    rawInput: input.value,
+    stemSuffix: "plain-text",
+  });
+  downloadBlob(blob, name);
+  afterSuccessfulExport();
+  await rememberExport("docx-plain", blob, name);
+  const rem = formatTrialRemaining(trialGate.getRemaining());
+  showNotice(rem ? `Downloaded ${name}. ${rem}.` : `Downloaded ${name}`, false);
   recordExportIssuesIfNeeded();
 }
 
 async function downloadHtml() {
+  if (!requireExportEntitlement()) return;
   if (!currentDoc) flushAutoConvert();
   const html = documentToHtmlFile(currentDoc);
   const name = exportName("html");
   const blob = new Blob([html], { type: "text/html" });
   downloadBlob(blob, name);
+  afterSuccessfulExport();
   await rememberExport("html", blob, name);
-  showNotice(`Downloaded ${name}`, false);
+  const rem = formatTrialRemaining(trialGate.getRemaining());
+  showNotice(rem ? `Downloaded ${name}. ${rem}.` : `Downloaded ${name}`, false);
   recordExportIssuesIfNeeded();
 }
 
 function redownloadSelected(id = null) {
+  if (!requireExportEntitlement()) return;
   const entry = id ? exportCache.getById(id) : exportCache.getLast();
   if (!entry) return;
   downloadBlob(entry.blob, entry.filename);
-  showNotice(`Downloaded ${entry.filename} again`, false);
+  afterSuccessfulExport();
+  const rem = formatTrialRemaining(trialGate.getRemaining());
+  showNotice(
+    rem ? `Downloaded ${entry.filename} again. ${rem}.` : `Downloaded ${entry.filename} again`,
+    false,
+  );
 }
-
 document.getElementById("btn-clear").addEventListener("click", () => {
   autoConvert.cancel();
   input.value = "";
@@ -428,6 +509,13 @@ docxButton?.addEventListener("click", () => {
   });
 });
 
+docxPlainButton?.addEventListener("click", () => {
+  downloadDocxPlain().catch((error) => {
+    recordException("docx-plain", error);
+    showNotice(error.message || "Could not build the plain-text Word document.");
+  });
+});
+
 document.getElementById("btn-html")?.addEventListener("click", () => {
   downloadHtml().catch((error) => {
     recordException("html", error);
@@ -506,6 +594,11 @@ document.addEventListener("keydown", (event) => {
   if (mod && event.shiftKey && event.key.toLowerCase() === "h") {
     event.preventDefault();
     document.getElementById("btn-html")?.click();
+    return;
+  }
+  if (mod && event.shiftKey && event.key.toLowerCase() === "t") {
+    event.preventDefault();
+    docxPlainButton?.click();
   }
 });
 
@@ -530,6 +623,7 @@ const authEmail = document.getElementById("auth-email");
 const authPassword = document.getElementById("auth-password");
 const authMessage = document.getElementById("auth-message");
 const authUserEl = document.getElementById("auth-user");
+const authPlanEl = document.getElementById("auth-plan");
 const authOpenBtn = document.getElementById("btn-auth-open");
 const authSignOutBtn = document.getElementById("btn-auth-signout");
 const authCloseBtn = document.getElementById("btn-auth-close");
@@ -578,16 +672,40 @@ function setAuthMode(mode) {
   setAuthMessage("");
 }
 
-function renderAuthSession(session) {
-  const email = session?.user?.email || "";
-  const signedIn = Boolean(email);
+function renderAuthSession(session, profile = null) {
+  const email = session?.user?.email || profile?.email || "";
+  const signedIn = Boolean(session?.user?.id);
+  const label = profile?.display_name || email;
+  trialGate.setSignedIn(signedIn);
+  updateTrialUi();
   if (authUserEl) {
-    authUserEl.textContent = email;
+    authUserEl.textContent = label;
     authUserEl.classList.toggle("hidden", !signedIn);
-    authUserEl.title = email;
+    authUserEl.title = email || label;
+  }
+  if (authPlanEl) {
+    const plan = profile?.plan || (signedIn ? "free" : "");
+    authPlanEl.textContent = plan ? `Plan: ${plan}` : "";
+    authPlanEl.classList.toggle("hidden", !signedIn);
   }
   if (authOpenBtn) authOpenBtn.classList.toggle("hidden", signedIn);
   if (authSignOutBtn) authSignOutBtn.classList.toggle("hidden", !signedIn);
+}
+
+async function syncProfileFromSession(session) {
+  const user = session?.user;
+  if (!user?.id) {
+    renderAuthSession(null, null);
+    return;
+  }
+  renderAuthSession(session, null);
+  const ensured = await ensureProfile(user);
+  if (ensured.error) {
+    const existing = await getProfile(user.id);
+    renderAuthSession(session, existing.data ?? null);
+    return;
+  }
+  renderAuthSession(session, ensured.data ?? null);
 }
 
 function openAuthDialog(mode = "signin") {
@@ -600,7 +718,7 @@ function openAuthDialog(mode = "signin") {
     } else {
       authConfigHint.hidden = false;
       authConfigHint.textContent =
-        "Supabase Auth is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to a local .env (see .env.example and docs/saas/AUTH.md). The converter still works without signing in.";
+        "Supabase Auth is not configured. For local use, add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env. For latextodocx.com, add the same names as GitHub Actions secrets and redeploy Pages. The converter still works without signing in.";
     }
   }
   if (authSubmitBtn) authSubmitBtn.disabled = !configured;
@@ -615,13 +733,14 @@ function openAuthDialog(mode = "signin") {
 async function refreshAuthSession() {
   const { data, error } = await getSession();
   if (error) {
-    renderAuthSession(null);
+    renderAuthSession(null, null);
     return;
   }
-  renderAuthSession(data?.session ?? null);
+  await syncProfileFromSession(data?.session ?? null);
 }
 
 authOpenBtn?.addEventListener("click", () => openAuthDialog("signin"));
+trialBannerSignIn?.addEventListener("click", () => openAuthDialog("signin"));
 authCloseBtn?.addEventListener("click", () => authDialog?.close?.());
 authTabSignIn?.addEventListener("click", () => setAuthMode("signin"));
 authTabRegister?.addEventListener("click", () => setAuthMode("register"));
@@ -655,7 +774,7 @@ authSignOutBtn?.addEventListener("click", async () => {
     showNotice(error.message || "Sign out failed.");
     return;
   }
-  renderAuthSession(null);
+  renderAuthSession(null, null);
 });
 
 authForm?.addEventListener("submit", async (event) => {
@@ -687,9 +806,10 @@ authForm?.addEventListener("submit", async (event) => {
     setAuthMode("signin");
     return;
   }
-  renderAuthSession(result.data?.session ?? null);
+  await syncProfileFromSession(result.data?.session ?? null);
   authDialog?.close?.();
   if (authPassword) authPassword.value = "";
+  showNotice("Signed in. Downloads are unlocked on the free plan.", false);
 });
 
 authDialog?.addEventListener("close", () => {
@@ -698,11 +818,12 @@ authDialog?.addEventListener("close", () => {
 });
 
 onAuthStateChange((_event, session) => {
-  renderAuthSession(session);
+  syncProfileFromSession(session).catch(() => renderAuthSession(session, null));
 });
-refreshAuthSession().catch(() => renderAuthSession(null));
+refreshAuthSession().catch(() => renderAuthSession(null, null));
 
 convert();
 updateExportControls();
+updateTrialUi();
 errorLog.ready.then(() => updateSendReportButton()).catch(() => {});
 startPresence();

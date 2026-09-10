@@ -8,7 +8,7 @@ This is the app users get today. The paid product must **extend** this, not repl
 
 Paste ChatGPT / Markdown / LaTeX → live preview → **Download .docx** with **native editable Word equations (OMML)**, **Download .docx (plain text)** (same Word structure; math as readable text, not equations), or Download HTML.
 
-Conversion is not uploaded. Optional Supabase accounts (when env is set) for sign-in only — paste still stays local. **Send error report** is always available (opt-in click), not only when warnings exist; that click emails the paste and failed LaTeX to the operator.
+Conversion is not uploaded. Optional Supabase accounts (when env is set) for sign-in. **Anonymous users get 3 free successful downloads**; after that, sign-in is required for exports. Preview stays free. Signed-in free plan: unlimited exports for now. **Send error report** is always available (opt-in click), not only when warnings exist; that click emails the paste and failed LaTeX to the operator.
 
 ## URLs and run
 
@@ -52,8 +52,10 @@ Never: LaTeX → HTML → Word. Never: equations as images.
 ## UI today (`index.html`)
 
 - Header: title **LaTeX to Word**, subtitle, privacy line, optional Sign in / Register / Sign out (Supabase), three-step how-it-works
+- Trial banner: remaining free downloads for anonymous users (or sign-in CTA when exhausted)
 - Left pane: example dropdown, Smart/Strict mode, Paste / Clear, textarea (autosaved locally; preview updates automatically)
 - Right pane: Converted / Warnings / Failed stats (clickable), math issues list, Download .docx / Download again / Download HTML / Download .docx (plain text) / recent exports, Word-like preview
+- Below converter: crawlable How it works + FAQ (SEO); `robots.txt` / `sitemap.xml` in `public/`
 - Footer: about copy plus **Send error report** (always available, opt-in click; does not show error details)
 - Shortcuts: Ctrl+Enter refresh preview; Ctrl+Shift+D download .docx; Ctrl+Shift+H download HTML; Ctrl+Shift+T download .docx with plain-text math
 

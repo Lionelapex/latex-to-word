@@ -37,12 +37,13 @@ flowchart TD
 
 ## Entitlements (app)
 
-After Convert (or before Download / Copy):
+Before Download / redownload:
 
-- If anonymous / free over quota → allow preview maybe, block export, CTA to subscribe
-- If Pro → export as today
+- If anonymous and over the **3-export** trial → block export, show banner + notice, CTA to sign in (preview still works)
+- If signed-in free → export unlimited (for now)
+- If Pro (later) → export as today / higher limits
 
-Exact limits: [PRICING.md](PRICING.md).
+Exact limits: [PRICING.md](PRICING.md). Client helper: `src/ui/trial-gate.js`.
 
 ## Hosting sketch (not locked)
 

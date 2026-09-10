@@ -2,10 +2,12 @@
 
 ## 2026-09-10
 
+- **Trial gate:** Anonymous users get **3 free downloads** (.docx / plain DOCX / HTML / redownload). Preview stays free. After 3, Sign in required for exports; signed-in free plan is unlimited for now. Usage in `localStorage` via `src/ui/trial-gate.js`. See DECISIONS.md and PRICING.md.
+- **SEO:** Stronger meta/OG/Twitter, FAQPage JSON-LD, crawlable How it works + FAQ below the converter, `public/robots.txt` + `public/sitemap.xml`. Documented in [SEO.md](SEO.md).
 - **Domain:** Custom domain **https://latextodocx.com/** on GitHub Pages; Vite `base: '/'`; `public/CNAME`. Update Supabase + Google OAuth redirect/origins for the new host.
-- **Auth (Supabase):** Documented setup in [AUTH.md](AUTH.md); locked vendor + Vite (no Next.js) in DECISIONS. Client `@supabase/supabase-js` with `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` only; Sign in / Register / Sign out in the header. Converter still works logged out. No service_role in the frontend.
+- **Auth (Supabase):** Documented setup in [AUTH.md](AUTH.md); locked vendor + Vite (no Next.js) in DECISIONS. Client `@supabase/supabase-js` with `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` only; Sign in / Register / Sign out in the header. No service_role in the frontend.
 - **Auth:** **Continue with Google** via Supabase `signInWithOAuth` (Google Client ID/secret stay in the Supabase dashboard, not in `.env`).
-- **Database:** Added `supabase/migrations/20260910_profiles.sql` for `public.profiles` + RLS + signup trigger (run in SQL Editor; MCP was read-only at apply time).
+- **Database:** Added `supabase/migrations/20260910_profiles.sql` for `public.profiles` + RLS + signup trigger; app `ensureProfile` on sign-in. Harden helper `20260910_profiles_harden.sql` for existing projects.
 
 ## 2026-08-28
 

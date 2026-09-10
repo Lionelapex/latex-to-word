@@ -2,6 +2,12 @@
 
 Append-only. Newest at the top.
 
+## 2026-09-10 — Anonymous 3-export trial then sign-in
+
+- **Decision:** Anonymous users get **3 free successful exports** (Download .docx, Download .docx plain text, Download HTML, and redownload from history each count). **Preview stays free** and does not consume trials. After 3 exports while logged out, block further downloads, show a clear banner/notice, and prompt Sign in. Signed-in users: **unlimited exports** on the free plan for now. Persist anonymous usage in `localStorage` (`latextodocx-anon-exports`) so refresh does not reset the trial. Entitlement is checked before every download path.
+- **Why:** Let people evaluate the converter (preview) and try a few real Word/HTML downloads, then require an account without uploading paste for conversion.
+- **Status:** In effect (`src/ui/trial-gate.js` wired in `app.js`).
+
 ## 2026-09-10 — Google OAuth via Supabase
 
 - **Decision:** Offer **Continue with Google** through Supabase Auth OAuth. Google Client ID/secret live only in the **Supabase dashboard** (Providers → Google). App still uses anon key only and `signInWithOAuth({ provider: "google" })`.
@@ -40,6 +46,6 @@ Append-only. Newest at the top.
 
 ## Open (must decide before coding SaaS)
 
-- Exact Free vs Pro limits and price
-- Whether the GitHub Pages site stays unlimited free forever or becomes the marketing/converter with a quota after login
+- Exact Pro price and whether free signed-in stays unlimited forever
+- Whether to add server-side usage meters (today anonymous trial is device-local only)
 - Additional OAuth providers beyond Google (e.g. GitHub)

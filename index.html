@@ -3,38 +3,39 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LaTeX to Word: Free LaTeX2Word Converter | ChatGPT to DOCX with Editable Equations</title>
+    <title>LaTeX to Word — Free LaTeX2Word Converter | ChatGPT Math to Editable DOCX</title>
     <meta
       name="description"
-      content="Free LaTeX to Word converter (LaTeX2Word). Paste any LaTeX, ChatGPT, or Markdown and download a .docx with native editable Word equations. Extract plain text from images in your browser. PDFs are not yet supported."
+      content="Free LaTeX to Word converter at latextodocx.com. Paste LaTeX, ChatGPT math, or Markdown and download a .docx with native editable Word equations (OMML). Private — runs in your browser."
     />
     <meta
       name="keywords"
-      content="LaTeX to Word, LaTeX2Word, latex to docx, ChatGPT to Word, convert LaTeX to Word, math to Word, OMML equations, editable Word equations"
+      content="latex to word, latex word, latex2word, latex to docx, chatgpt to word, chatgpt math to word, convert latex to word, math to word, OMML, editable Word equations, latextodocx"
     />
     <meta name="robots" content="index, follow" />
     <meta name="author" content="LaTeX to Word" />
     <link rel="canonical" href="https://latextodocx.com/" />
 
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="LaTeX to Word" />
     <meta property="og:url" content="https://latextodocx.com/" />
     <meta
       property="og:title"
-      content="LaTeX to Word: Convert ChatGPT and LaTeX to Editable Word DOCX"
+      content="LaTeX to Word — Convert ChatGPT and LaTeX to Editable DOCX"
     />
     <meta
       property="og:description"
-      content="Paste any LaTeX, ChatGPT, or Markdown, preview instantly, and download a Word document with editable equations. Extract plain text from pasted or uploaded images locally in your browser."
+      content="Paste any LaTeX, ChatGPT, or Markdown. Preview instantly. Download Word with editable equations. Free trials then sign in — conversion stays in your browser."
     />
     <meta property="og:locale" content="en_US" />
     <meta name="twitter:card" content="summary" />
     <meta
       name="twitter:title"
-      content="LaTeX to Word: LaTeX2Word Converter"
+      content="LaTeX to Word | LaTeX2Word & ChatGPT to Word"
     />
     <meta
       name="twitter:description"
-      content="Convert ChatGPT and LaTeX to Word .docx with editable equations. Free, private, runs in your browser."
+      content="Convert LaTeX and ChatGPT math to Word .docx with editable equations. Free, private, runs at latextodocx.com."
     />
 
     <script type="application/ld+json">
@@ -42,9 +43,9 @@
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "LaTeX to Word",
-        "alternateName": ["LaTeX2Word", "LaTeX to DOCX"],
+        "alternateName": ["LaTeX2Word", "LaTeX to DOCX", "latex to word", "ChatGPT to Word"],
         "url": "https://latextodocx.com/",
-        "description": "Convert ChatGPT, Markdown, and LaTeX into a Microsoft Word document with native editable OMML equations.",
+        "description": "Convert ChatGPT, Markdown, and LaTeX into a Microsoft Word document with native editable OMML equations. Runs in the browser at latextodocx.com.",
         "applicationCategory": "UtilityApplication",
         "operatingSystem": "Any",
         "browserRequirements": "Requires JavaScript",
@@ -56,10 +57,58 @@
         "featureList": [
           "LaTeX to Word conversion",
           "ChatGPT math to DOCX",
-          "Editable Word equations",
+          "Editable Word equations (OMML)",
           "Markdown and table support",
           "Image text extraction (OCR)",
           "Local browser processing"
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How do I convert LaTeX to Word?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Paste your LaTeX, ChatGPT math, or Markdown into the converter at latextodocx.com. Preview updates automatically. Click Download .docx to get a Word file with native editable equations (OMML), not images."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does LaTeX to Word upload my document?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Conversion runs entirely in your browser. Your pasted LaTeX is not uploaded for conversion. Optional sign-in is for accounts only. Error reports are sent only if you click Send error report."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I turn ChatGPT math into an editable Word document?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Paste ChatGPT output with LaTeX math into the converter. Download .docx produces editable Word equations you can edit in Microsoft Word, not screenshots."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is latex2word free? How many downloads do I get?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Anonymous users get three free downloads (DOCX or HTML). Preview stays free. Sign in with a free account for unlimited exports. Paid Pro plans may follow later."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Are Word equations editable?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Downloads use Office Math Markup Language (OMML) so equations open as native Word equations you can edit, not as pictures."
+            }
+          }
         ]
       }
     </script>
@@ -85,6 +134,10 @@
             </p>
             <div id="auth-bar" class="flex flex-wrap items-center justify-end gap-2" aria-live="polite">
               <span id="auth-user" class="hidden max-w-[14rem] truncate text-xs text-slate-600 sm:text-sm"></span>
+              <span
+                id="auth-plan"
+                class="hidden rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-600"
+              ></span>
               <button type="button" id="btn-auth-open" class="btn">Sign in</button>
               <button type="button" id="btn-auth-signout" class="btn hidden">Sign out</button>
             </div>
@@ -124,6 +177,20 @@
     </header>
 
     <main class="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
+      <div
+        id="trial-banner"
+        class="mb-4 flex flex-col gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-950 sm:flex-row sm:items-center sm:justify-between"
+        role="status"
+        aria-live="polite"
+        data-state="ok"
+      >
+        <p id="trial-banner-text" class="leading-relaxed">
+          3 free downloads left without signing in. Preview is always free.
+        </p>
+        <button type="button" id="trial-banner-signin" class="btn btn-primary shrink-0 self-start sm:self-auto">
+          Sign in for unlimited
+        </button>
+      </div>
       <div
         class="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6"
         style="min-height: calc(100vh - 14rem)"
@@ -268,6 +335,84 @@
           <div id="notice" class="px-4 py-3 text-sm" hidden role="status"></div>
         </section>
       </div>
+
+      <section
+        id="how-it-works"
+        class="mt-10 border-t border-slate-200 pt-8"
+        aria-labelledby="how-it-works-heading"
+      >
+        <h2 id="how-it-works-heading" class="text-lg font-semibold text-slate-900">
+          How LaTeX to Word works
+        </h2>
+        <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600">
+          <strong>latextodocx.com</strong> is a free <strong>LaTeX to Word</strong> (LaTeX2Word) converter:
+          paste ChatGPT math or LaTeX, preview in the browser, then download a
+          <code>.docx</code> with editable equations — not screenshots.
+        </p>
+        <ol class="mt-4 grid gap-3 sm:grid-cols-3">
+          <li class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+            <p class="font-semibold text-slate-900">1. Paste</p>
+            <p class="mt-1 leading-relaxed text-slate-600">
+              Drop in LaTeX, Markdown, or ChatGPT output. Tables and math delimiters are detected automatically.
+            </p>
+          </li>
+          <li class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+            <p class="font-semibold text-slate-900">2. Preview</p>
+            <p class="mt-1 leading-relaxed text-slate-600">
+              The Word-like preview updates as you type. Preview stays free for anonymous users.
+            </p>
+          </li>
+          <li class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+            <p class="font-semibold text-slate-900">3. Download</p>
+            <p class="mt-1 leading-relaxed text-slate-600">
+              Get a native Word file with OMML equations you can edit in Microsoft Word, or download HTML / plain-text math DOCX.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section id="faq" class="mt-10 border-t border-slate-200 pt-8" aria-labelledby="faq-heading">
+        <h2 id="faq-heading" class="text-lg font-semibold text-slate-900">
+          FAQ: latex to word, latex2word, ChatGPT to Word
+        </h2>
+        <dl class="mt-4 max-w-3xl space-y-4 text-sm leading-relaxed text-slate-600">
+          <div>
+            <dt class="font-semibold text-slate-900">How do I convert LaTeX to Word / DOCX?</dt>
+            <dd class="mt-1">
+              Paste your content above, check the preview, then use <strong>Download .docx</strong>. Equations become
+              native editable Word math (OMML), not images.
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-900">Can I convert ChatGPT math to Word?</dt>
+            <dd class="mt-1">
+              Yes — paste ChatGPT (or other LLM) output with LaTeX math. This is a practical
+              <strong>ChatGPT to Word</strong> path for homework, notes, and papers.
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-900">Is my document uploaded?</dt>
+            <dd class="mt-1">
+              No. Conversion stays in your browser. Sign-in is only for accounts and export limits — not for sending
+              paste content to a conversion server.
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-900">How many free downloads do anonymous users get?</dt>
+            <dd class="mt-1">
+              Three successful downloads (.docx, plain DOCX, or HTML). After that, sign in for unlimited exports on the
+              free plan. Preview never counts against the trial.
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-slate-900">What about latex word / latex2word searches?</dt>
+            <dd class="mt-1">
+              Those all point at the same tool: convert LaTeX (and ChatGPT math) into an editable Word document at
+              latextodocx.com.
+            </dd>
+          </div>
+        </dl>
+      </section>
     </main>
 
     <footer class="mt-auto border-t border-slate-200 bg-white">
@@ -376,7 +521,8 @@
         <p id="auth-message" class="hidden text-sm leading-relaxed" role="status"></p>
         <button type="submit" id="btn-auth-submit" class="btn btn-primary w-full">Sign in</button>
         <p class="text-xs leading-relaxed text-slate-500">
-          Accounts are optional. Conversion still runs locally when you are signed out.
+          Accounts unlock unlimited downloads after the anonymous trial. Conversion still runs locally when you are
+          signed out or signed in.
         </p>
       </form>
     </dialog>

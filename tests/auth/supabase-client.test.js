@@ -24,7 +24,7 @@ describe("supabase auth helpers", () => {
   it("signIn returns a clear error when unset", async () => {
     vi.stubEnv("VITE_SUPABASE_URL", "");
     vi.stubEnv("VITE_SUPABASE_ANON_KEY", "");
-    const { signIn, signUp, signOut, signInWithGoogle } = await import(
+    const { signIn, signUp, signOut, signInWithGoogle, getProfile, ensureProfile } = await import(
       "../../src/auth/supabase-client.js"
     );
     const inResult = await signIn("a@b.com", "secret");
@@ -37,5 +37,9 @@ describe("supabase auth helpers", () => {
     const googleResult = await signInWithGoogle();
     expect(googleResult.error).toBeInstanceOf(Error);
     expect(googleResult.error.message).toMatch(/not configured/i);
+    const profileResult = await getProfile("x");
+    expect(profileResult.error).toBeInstanceOf(Error);
+    const ensureResult = await ensureProfile({ id: "x", email: "a@b.com" });
+    expect(ensureResult.error).toBeInstanceOf(Error);
   });
 });

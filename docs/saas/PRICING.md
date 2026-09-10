@@ -1,29 +1,33 @@
 # Pricing (draft)
 
-Status: **not live**. Numbers are placeholders until we set Stripe products.
+Status: **partial** — anonymous export trial is live; Stripe / Pro not live. Numbers for Pro are placeholders.
 
 ## Intent
 
-- Keep a usable **free** public converter (goodwill, Reddit, SEO).
-- **Pro** pays for unlimited (or high) exports and later extras.
+- Keep a usable **free** public converter (goodwill, Reddit, SEO) with a small anonymous download cap.
+- **Sign-in (free plan)** unlocks unlimited exports for now.
+- **Pro** (later) pays for extras (OCR metering, support, etc.).
 
-## Draft plans
+## Live limits (today)
 
-| | Free | Pro (monthly) |
-| --- | --- | --- |
-| Convert + preview | Yes | Yes |
-| Download .docx / HTML | Limited (e.g. N per day) **or** unlimited on GitHub Pages until SaaS ships | Unlimited |
-| Document content on our servers | Never | Never |
-| Image OCR | No | Later, metered |
-| Support | GitHub issues | Email / form (optional) |
+| | Anonymous | Signed-in free | Pro (planned) |
+| --- | --- | --- | --- |
+| Convert + preview | Yes (unlimited) | Yes | Yes |
+| Download .docx / plain DOCX / HTML | **3 successful exports** (persisted in browser `localStorage`) | Unlimited | Unlimited |
+| Redownload from history | Counts against the same 3 / requires remaining trial or sign-in | Unlimited | Unlimited |
+| Document content on our servers | Never | Never | Never |
+| Image OCR | Local Tesseract (browser) | Same | Later metered cloud OCR possible |
+| Support | GitHub issues | GitHub issues | Email / form (optional) |
 
-**Placeholder price:** not decided (e.g. $5–12/month is a typical range for a small utility; lock in DECISIONS.md).
+Trial rules are locked in [DECISIONS.md](DECISIONS.md). Preview never consumes a trial.
 
-## Metering
+**Placeholder Pro price:** not decided (e.g. $5–12/month). Lock in DECISIONS.md when Stripe ships.
 
-If we meter, count **successful exports** (docx or html), not keystrokes. Store only `{ userId, day, count }` — not the document.
+## Metering notes
 
-Anonymous users: IP or device fingerprint is hostile; prefer “free unlimited on static site” until login exists, then attach quota to account.
+- Count **successful exports** (docx, plain docx, html, redownload), not keystrokes or preview refreshes.
+- Anonymous counter is **device-local** only (`latextodocx-anon-exports`). Clearing site data resets it; that is accepted until server-side usage exists.
+- Signed-in usage is not stored server-side yet (unlimited free plan).
 
 ## Stripe artifacts (when implementing)
 
