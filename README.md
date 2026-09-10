@@ -28,7 +28,7 @@ The live site is served from the Vite `dist/` build, not the repository root.
 2. Set **Source** to **GitHub Actions** (not “Deploy from a branch” / root).
 3. Push to `main` (or run the **Deploy GitHub Pages** workflow). The first run must succeed before the site is live.
 
-The workflow builds with `base: '/latex-to-word/'` so assets load at `https://lionelapex.github.io/latex-to-word/`.
+The live site is **https://latextodocx.com/** (GitHub Pages + custom domain). The workflow builds with `base: '/'`. The old path `https://lionelapex.github.io/latex-to-word/` redirects to the custom domain when Pages custom domain is configured.
 
 ## What it does
 

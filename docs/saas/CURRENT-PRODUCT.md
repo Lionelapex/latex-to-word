@@ -8,18 +8,18 @@ This is the app users get today. The paid product must **extend** this, not repl
 
 Paste ChatGPT / Markdown / LaTeX → live preview → **Download .docx** with **native editable Word equations (OMML)**, **Download .docx (plain text)** (same Word structure; math as readable text, not equations), or Download HTML.
 
-Conversion is not uploaded. No accounts. **Send error report** is always available (opt-in click), not only when warnings exist; that click emails the paste and failed LaTeX to the operator.
+Conversion is not uploaded. Optional Supabase accounts (when env is set) for sign-in only — paste still stays local. **Send error report** is always available (opt-in click), not only when warnings exist; that click emails the paste and failed LaTeX to the operator.
 
 ## URLs and run
 
 | Item | Value |
 | --- | --- |
-| Live | https://lionelapex.github.io/latex-to-word/ |
+| Live | https://latextodocx.com/ (also https://lionelapex.github.io/latex-to-word/) |
 | Repo | https://github.com/Lionelapex/latex-to-word |
-| Local | `npm install` then `npm run dev` (usually `http://localhost:5173`) |
+| Local | `npm install` then `npm run dev` (usually `http://127.0.0.1:5173/`) |
 | Windows | If PowerShell blocks `npm.ps1`, use `npm.cmd run dev` or `run-dev.bat` |
 | Tests | `npm test` (Vitest) |
-| Pages | GitHub Actions builds Vite `dist/` with `base: '/latex-to-word/'`. Pages **Source must be GitHub Actions**, not deploy-from-branch (Jekyll serving the repo root breaks CSS/JS). |
+| Pages | GitHub Actions builds Vite `dist/` with `base: '/'` for custom domain. Pages **Source must be GitHub Actions**, not deploy-from-branch. Custom domain DNS + `public/CNAME` → `latextodocx.com`. |
 | Error reports | Operator inbox `lionelapex@gmail.com` (override with `VITE_ERROR_REPORT_EMAIL`). First send triggers a FormSubmit confirmation email that must be accepted. |
 
 ## Stack (do not casually change)
@@ -51,7 +51,7 @@ Never: LaTeX → HTML → Word. Never: equations as images.
 
 ## UI today (`index.html`)
 
-- Header: title **LaTeX to Word**, subtitle, privacy line, three-step how-it-works
+- Header: title **LaTeX to Word**, subtitle, privacy line, optional Sign in / Register / Sign out (Supabase), three-step how-it-works
 - Left pane: example dropdown, Smart/Strict mode, Paste / Clear, textarea (autosaved locally; preview updates automatically)
 - Right pane: Converted / Warnings / Failed stats (clickable), math issues list, Download .docx / Download again / Download HTML / Download .docx (plain text) / recent exports, Word-like preview
 - Footer: about copy plus **Send error report** (always available, opt-in click; does not show error details)

@@ -8,7 +8,7 @@ Statuses: **done** / **next (free app)** / **saas** / **later** / **out of scope
 - Tables (GFM, HTML paste, TSV, math-dedupe)
 - Structure: headings, lists, display math as own blocks
 - GitHub Pages via Vite `dist` + Actions
-- Live: https://lionelapex.github.io/latex-to-word/
+- Live: https://latextodocx.com/
 
 ## Next (still free, no backend) — user-requested pain
 
@@ -27,12 +27,14 @@ These improve daily use **before** subscriptions:
 
 ## SaaS (accounts + money)
 
-1. Choose auth + host API (record in DECISIONS.md)
-2. Stripe Checkout + Portal + webhooks
-3. `GET /me` entitlements in the static app
-4. Pricing page + quota UX
-5. Legal: terms, privacy, refunds
-6. Paid UI chrome from [UI-LAYOUT.md](UI-LAYOUT.md) (account, plan badge)
+1. Choose auth + host API (record in DECISIONS.md) — **done** (Supabase Auth + Vite; see [AUTH.md](AUTH.md))
+2. Client register / sign-in / sign-out UI (email + password) — **in progress**
+3. Stripe Checkout + Portal + webhooks
+4. `GET /me` entitlements in the static app
+5. Pricing page + quota UX
+6. Legal: terms, privacy, refunds
+7. Paid UI chrome from [UI-LAYOUT.md](UI-LAYOUT.md) (account, plan badge)
+8. GitHub Pages build secrets for `VITE_SUPABASE_*` (same pattern as presence)
 
 ## Later
 
