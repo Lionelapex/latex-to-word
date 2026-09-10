@@ -2,6 +2,18 @@
 
 Append-only. Newest at the top.
 
+## 2026-09-10 — Google OAuth via Supabase
+
+- **Decision:** Offer **Continue with Google** through Supabase Auth OAuth. Google Client ID/secret live only in the **Supabase dashboard** (Providers → Google). App still uses anon key only and `signInWithOAuth({ provider: "google" })`.
+- **Why:** Users asked for Google sign-in without putting Google secrets in the Vite frontend.
+- **Status:** In effect (UI + helper); requires Google provider enabled in Supabase.
+
+## 2026-09-10 — Auth vendor = Supabase; keep Vite
+
+- **Decision:** Use **Supabase Auth** (email + password v1) with `@supabase/supabase-js` in the existing **Vite** app. Do **not** migrate to Next.js for auth. Public env only: `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`. **service_role** never in the frontend or any `VITE_*` var (server-only later for billing/admin). Converter stays usable logged out until pricing/quotas say otherwise.
+- **Why:** Matches architecture (identity in browser via anon key; conversion stays local). Avoids a framework rewrite for tonight’s register/sign-in.
+- **Status:** In effect for client auth wiring; see [AUTH.md](AUTH.md).
+
 ## 2026-08-28 — Optional presence analytics (no document upload)
 
 - **Decision:** Add optional Cloudflare Worker (`presence-api/`) + client heartbeats for **active user count**, **IP**, and **User-Agent**. No desktop hostname (impossible in browsers). Document content never sent.
@@ -28,6 +40,6 @@ Append-only. Newest at the top.
 
 ## Open (must decide before coding SaaS)
 
-- Auth vendor (Clerk vs Supabase vs Auth0 vs custom)
 - Exact Free vs Pro limits and price
 - Whether the GitHub Pages site stays unlimited free forever or becomes the marketing/converter with a quota after login
+- Additional OAuth providers beyond Google (e.g. GitHub)

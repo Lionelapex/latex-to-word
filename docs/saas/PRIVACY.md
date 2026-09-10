@@ -2,7 +2,9 @@
 
 ## Today (free GitHub Pages app)
 
-**True and required:** pasted content is processed **only in the browser**. No accounts, no upload of document text.
+**True and required:** pasted content is processed **only in the browser**. No upload of document text for conversion.
+
+Optional **accounts** (when `VITE_SUPABASE_*` is configured): email and auth session go to **Supabase Auth** only. Document paste is still not sent to Supabase. See [AUTH.md](AUTH.md).
 
 UI copy: *Your document is processed locally in your browser.*
 
@@ -28,13 +30,13 @@ Crashes are stored **silently on the device**. Clients do not see that log. **Se
 
 ## After SaaS accounts
 
-Still true **if** we follow [ARCHITECTURE.md](ARCHITECTURE.md):
+Still true **if** we follow [ARCHITECTURE.md](ARCHITECTURE.md) and [AUTH.md](AUTH.md):
 
 - Conversion still local
-- Server stores email, auth ids, plan, usage counts
+- Supabase (and later our API) stores email, auth ids, plan, usage counts
 - Server does **not** store LaTeX or .docx
 
-Privacy policy must list: auth provider, Stripe (payment data on Stripe’s side), hosting.
+Privacy policy must list: **Supabase** (auth), Stripe (payment data on Stripe’s side), hosting.
 
 ## If we add image OCR or any server-side parse
 

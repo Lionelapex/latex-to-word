@@ -1,6 +1,6 @@
 # SaaS architecture
 
-Status: **planned**. Conversion in the current app is 100% client-side. This document is the intended split when we add subscriptions.
+Status: **partial** — Supabase Auth client + UI in the Vite app; Stripe / entitlements API still planned. Conversion remains 100% client-side.
 
 ## Principle
 
@@ -30,10 +30,10 @@ flowchart TD
 | Piece | Job | Notes |
 | --- | --- | --- |
 | Static app | Converter UI + `docx` in the browser | Same Vite app; GitHub Pages or Cloudflare/Netlify |
-| Auth | Login (email or Google/GitHub) | Clerk, Supabase Auth, or Auth0 — pick in DECISIONS.md when we implement |
-| Database | User id, plan, period end, usage counters | Do **not** store pasted documents |
+| Auth | Login (email + password v1) | **Supabase Auth** via `@supabase/supabase-js` (anon key only). See [AUTH.md](AUTH.md) and DECISIONS.md |
+| Database | User id, plan, period end, usage counters | Supabase (or later API DB); Do **not** store pasted documents |
 | Stripe | Checkout + Customer Portal | Webhooks update plan; never handle raw cards |
-| Small API | `GET /me`, optional `POST /usage` | No LaTeX body required |
+| Small API | `GET /me`, optional `POST /usage` | No LaTeX body required; service_role / Stripe secrets **only on server** |
 
 ## Entitlements (app)
 
@@ -46,9 +46,10 @@ Exact limits: [PRICING.md](PRICING.md).
 
 ## Hosting sketch (not locked)
 
-- App: static host (Pages is fine for the converter; auth callbacks need allowed origins)
-- API: one small Node or serverless project (separate folder later, e.g. `server/` or a second repo)
-- Secrets: Stripe keys and auth secrets **only on the server**
+- App: static host (Pages is fine for the converter; Supabase redirect URLs must allow local + Pages origins — see [AUTH.md](AUTH.md))
+- Auth: Supabase-hosted; browser uses anon key only
+- API: one small Node or serverless project (separate folder later, e.g. `server/` or a second repo) for Stripe webhooks / entitlements
+- Secrets: Stripe keys and Supabase **service_role** **only on the server** — never in `VITE_*`
 
 ## Image OCR (future, not now)
 

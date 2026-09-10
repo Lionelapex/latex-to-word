@@ -35,6 +35,15 @@ import {
 } from "./src/utils/error-log.js";
 import { sendErrorReport } from "./src/utils/send-error-report.js";
 import { getErrorReportEmail } from "./src/config/error-report.js";
+import {
+  getSession,
+  isAuthConfigured,
+  onAuthStateChange,
+  signIn,
+  signInWithGoogle,
+  signOut,
+  signUp,
+} from "./src/auth/supabase-client.js";
 
 const input = document.getElementById("input");
 const preview = document.getElementById("preview");
@@ -514,6 +523,184 @@ function downloadBlob(blob, filename) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+const authDialog = document.getElementById("auth-dialog");
+const authForm = document.getElementById("auth-form");
+const authEmail = document.getElementById("auth-email");
+const authPassword = document.getElementById("auth-password");
+const authMessage = document.getElementById("auth-message");
+const authUserEl = document.getElementById("auth-user");
+const authOpenBtn = document.getElementById("btn-auth-open");
+const authSignOutBtn = document.getElementById("btn-auth-signout");
+const authCloseBtn = document.getElementById("btn-auth-close");
+const authSubmitBtn = document.getElementById("btn-auth-submit");
+const authGoogleBtn = document.getElementById("btn-auth-google");
+const authTabSignIn = document.getElementById("auth-tab-signin");
+const authTabRegister = document.getElementById("auth-tab-register");
+const authConfigHint = document.getElementById("auth-config-hint");
+const authDialogTitle = document.getElementById("auth-dialog-title");
+
+let authMode = "signin";
+
+function setAuthMessage(text, kind = "info") {
+  if (!authMessage) return;
+  if (!text) {
+    authMessage.hidden = true;
+    authMessage.textContent = "";
+    return;
+  }
+  authMessage.hidden = false;
+  authMessage.textContent = text;
+  authMessage.className =
+    kind === "error"
+      ? "text-sm leading-relaxed text-red-700"
+      : kind === "success"
+        ? "text-sm leading-relaxed text-emerald-700"
+        : "text-sm leading-relaxed text-slate-600";
+}
+
+function setAuthMode(mode) {
+  authMode = mode === "register" ? "register" : "signin";
+  const isRegister = authMode === "register";
+  if (authDialogTitle) authDialogTitle.textContent = isRegister ? "Register" : "Sign in";
+  if (authSubmitBtn) authSubmitBtn.textContent = isRegister ? "Create account" : "Sign in";
+  if (authPassword) {
+    authPassword.autocomplete = isRegister ? "new-password" : "current-password";
+  }
+  if (authTabSignIn) {
+    authTabSignIn.setAttribute("aria-selected", String(!isRegister));
+    authTabSignIn.classList.toggle("btn-primary", !isRegister);
+  }
+  if (authTabRegister) {
+    authTabRegister.setAttribute("aria-selected", String(isRegister));
+    authTabRegister.classList.toggle("btn-primary", isRegister);
+  }
+  setAuthMessage("");
+}
+
+function renderAuthSession(session) {
+  const email = session?.user?.email || "";
+  const signedIn = Boolean(email);
+  if (authUserEl) {
+    authUserEl.textContent = email;
+    authUserEl.classList.toggle("hidden", !signedIn);
+    authUserEl.title = email;
+  }
+  if (authOpenBtn) authOpenBtn.classList.toggle("hidden", signedIn);
+  if (authSignOutBtn) authSignOutBtn.classList.toggle("hidden", !signedIn);
+}
+
+function openAuthDialog(mode = "signin") {
+  setAuthMode(mode);
+  const configured = isAuthConfigured();
+  if (authConfigHint) {
+    if (configured) {
+      authConfigHint.hidden = true;
+      authConfigHint.textContent = "";
+    } else {
+      authConfigHint.hidden = false;
+      authConfigHint.textContent =
+        "Supabase Auth is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to a local .env (see .env.example and docs/saas/AUTH.md). The converter still works without signing in.";
+    }
+  }
+  if (authSubmitBtn) authSubmitBtn.disabled = !configured;
+  if (authGoogleBtn) authGoogleBtn.disabled = !configured;
+  if (authEmail) authEmail.disabled = !configured;
+  if (authPassword) authPassword.disabled = !configured;
+  setAuthMessage("");
+  authDialog?.showModal?.();
+  if (configured) authEmail?.focus?.();
+}
+
+async function refreshAuthSession() {
+  const { data, error } = await getSession();
+  if (error) {
+    renderAuthSession(null);
+    return;
+  }
+  renderAuthSession(data?.session ?? null);
+}
+
+authOpenBtn?.addEventListener("click", () => openAuthDialog("signin"));
+authCloseBtn?.addEventListener("click", () => authDialog?.close?.());
+authTabSignIn?.addEventListener("click", () => setAuthMode("signin"));
+authTabRegister?.addEventListener("click", () => setAuthMode("register"));
+
+authGoogleBtn?.addEventListener("click", async () => {
+  if (!isAuthConfigured()) {
+    setAuthMessage("Auth is not configured. See docs/saas/AUTH.md.", "error");
+    return;
+  }
+  authGoogleBtn.disabled = true;
+  setAuthMessage("Redirecting to Google…");
+  const { data, error } = await signInWithGoogle();
+  if (error) {
+    authGoogleBtn.disabled = false;
+    setAuthMessage(error.message || "Google sign-in failed.", "error");
+    return;
+  }
+  if (data?.url) {
+    window.location.assign(data.url);
+    return;
+  }
+  authGoogleBtn.disabled = false;
+  setAuthMessage("Google sign-in did not return a redirect URL.", "error");
+});
+
+authSignOutBtn?.addEventListener("click", async () => {
+  authSignOutBtn.disabled = true;
+  const { error } = await signOut();
+  authSignOutBtn.disabled = false;
+  if (error) {
+    showNotice(error.message || "Sign out failed.");
+    return;
+  }
+  renderAuthSession(null);
+});
+
+authForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!isAuthConfigured()) {
+    setAuthMessage("Auth is not configured. See docs/saas/AUTH.md.", "error");
+    return;
+  }
+  const email = String(authEmail?.value || "").trim();
+  const password = String(authPassword?.value || "");
+  if (!email || !password) {
+    setAuthMessage("Enter email and password.", "error");
+    return;
+  }
+  if (authSubmitBtn) authSubmitBtn.disabled = true;
+  setAuthMessage(authMode === "register" ? "Creating account…" : "Signing in…");
+  const result =
+    authMode === "register" ? await signUp(email, password) : await signIn(email, password);
+  if (authSubmitBtn) authSubmitBtn.disabled = false;
+  if (result.error) {
+    setAuthMessage(result.error.message || "Authentication failed.", "error");
+    return;
+  }
+  if (authMode === "register" && !result.data?.session) {
+    setAuthMessage(
+      "Check your email to confirm your account, then sign in.",
+      "success",
+    );
+    setAuthMode("signin");
+    return;
+  }
+  renderAuthSession(result.data?.session ?? null);
+  authDialog?.close?.();
+  if (authPassword) authPassword.value = "";
+});
+
+authDialog?.addEventListener("close", () => {
+  setAuthMessage("");
+  if (authPassword) authPassword.value = "";
+});
+
+onAuthStateChange((_event, session) => {
+  renderAuthSession(session);
+});
+refreshAuthSession().catch(() => renderAuthSession(null));
 
 convert();
 updateExportControls();
